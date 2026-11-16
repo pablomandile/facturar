@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,6 +53,11 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // La cascada de la base se lleva todo lo demás (emisor, certificados,
+        // clientes, facturas, registro de ARCA): lo promete la política de
+        // privacidad y lo verifica CuentaEliminadaTest. Las sesiones de otros
+        // dispositivos no tienen FK: se borran a mano.
+        DB::table('sessions')->where('user_id', $user->id)->delete();
         $user->delete();
 
         $request->session()->invalidate();

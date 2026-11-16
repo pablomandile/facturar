@@ -152,6 +152,34 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - `bacon/bacon-qr-code` está declarado en `composer.json` aunque Fortify ya lo trae: lo usamos
   directamente y no conviene depender de una dependencia ajena.
 
+### Términos, privacidad y cookies
+
+- Los textos viven en `resources/legales/*.md`, con `{responsable}`, `{contacto}` y
+  `{retencion_llamadas}` que completa `LegalesController::markdown()` desde
+  `config/legales.php` (y este, desde el `.env`: el repo es público). Sin configurar, el
+  texto muestra «[falta configurar …]» a la vista en vez de quedar vacío.
+- **Cada promesa de la política está atada al código**, y cambiar una obliga a cambiar la
+  otra y subir `legales.version`:
+    - «al eliminar la cuenta se borra todo en el momento»: `User` sin SoftDeletes y las FK en
+      cascada; `ProfileController::destroy` borra además las sesiones. Lo prueba
+      `TerminosYPrivacidadTest` tabla por tabla.
+    - «Descargar mis datos» en Configuración → Perfil: `ExportadorDeDatos`, un ZIP con
+      `datos.json` y los PDF. **Nunca lleva la clave privada** (lo prueba el mismo test).
+    - el registro de ARCA se borra a los N días: `config('arca.retencion_llamadas_dias')`,
+      que es lo mismo que lee el texto.
+    - «no hay terceros en el navegador»: las fuentes las sirve la app (plugin de fuentes de
+      Vite, sin pedido a Bunny en tiempo de ejecución).
+- `AceptoTerminos` va en todo el grupo `web`; las rutas exentas están en
+  `AceptoTerminos::EXENTAS` y un test fija la lista exacta de las que tienen sesión.
+  Descargar los datos y eliminar la cuenta son exentas: son derechos.
+- La `UserFactory` acepta la versión vigente por defecto (`sinAceptarTerminos()` para lo
+  contrario): sin eso, toda la suite queda frenada en la pantalla de aceptación.
+- El aviso de cookies es **informativo** porque todo lo que se guarda es necesario. La
+  página `/cookies` es el inventario completo y `AvisoCookiesTest` lo mantiene: una clave
+  nueva en `localStorage`, una cookie o una caché del service worker sin declarar rompe
+  la suite. Si algún día entra algo no necesario (analíticas), pasa a consentimiento
+  previo: no se carga hasta aceptar, y se sube la versión del aviso.
+
 ### Tests de ARCA
 
 - `tests/TestCase.php` registra una fábrica de transportes que **explota** si un test llega
@@ -207,8 +235,11 @@ Etapa 5: el PDF de la factura C con el QR de ARCA (dompdf, maquetado con tablas,
 DejaVu con subsetting), el panel (configuración pendiente, facturado del mes, vencimiento del
 certificado, últimas facturas) y la revisión a 360 px de todas las pantallas.
 
-Sigue: Etapa 6, producción (PWA, términos y privacidad, aviso de cookies, deploy a Hostinger,
-cron de hPanel para `schedule:run`, certificado de producción).
+Etapa 6, local: PWA instalable con marca propia, términos y privacidad con aceptación,
+descarga de datos, aviso y página de cookies.
+
+Sigue: el deploy a Hostinger (cron de hPanel para `schedule:run`, `LEGALES_*` en el `.env`,
+`arca:diagnostico` en el server, certificado de producción).
 
 > **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
 > pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.

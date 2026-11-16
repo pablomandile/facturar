@@ -9,6 +9,7 @@ import AppLogo from '@/components/AppLogo.vue';
 import BotonInstalar from '@/components/BotonInstalar.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import PieLegal from '@/components/PieLegal.vue';
 import {
     Sidebar,
     SidebarContent,
@@ -89,6 +90,7 @@ const mainNavItems: NavItem[] = [
             -->
             <div class="px-2 group-data-[collapsible=icon]:hidden">
                 <BotonInstalar class="w-full" />
+                <PieLegal class="mt-2" />
             </div>
 
             <NavUser />

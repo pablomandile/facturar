@@ -7,6 +7,8 @@ use App\Http\Controllers\ComprobantePdfController;
 use App\Http\Controllers\ConexionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmisorController;
+use App\Http\Controllers\ExportacionController;
+use App\Http\Controllers\LegalesController;
 use App\Http\Controllers\PuntoDeVentaController;
 use App\Http\Middleware\RequiereEmisor;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,20 @@ Route::inertia('/', 'Welcome')->name('home');
 // La pantalla que muestra el service worker sin conexión. Blade suelto: se
 // dibuja sin los assets compilados.
 Route::view('offline', 'offline')->name('offline');
+
+// Los textos legales se leen con y sin sesión.
+Route::get('terminos', [LegalesController::class, 'terminos'])->name('terminos');
+Route::get('privacidad', [LegalesController::class, 'privacidad'])->name('privacidad');
+Route::inertia('cookies', 'Cookies')->name('cookies');
+
+Route::middleware('auth')->group(function () {
+    // La pantalla "aceptar y continuar" que muestra AceptoTerminos.
+    Route::get('terminos/aceptar', [LegalesController::class, 'aceptar'])->name('terminos.aceptar');
+    Route::post('terminos/aceptar', [LegalesController::class, 'guardarAceptacion'])->name('terminos.aceptar.store');
+
+    // Derecho de acceso: no depende de aceptar los términos ni de verificar el email.
+    Route::get('mis-datos', [ExportacionController::class, 'datos'])->middleware('throttle:3,1')->name('exportacion.datos');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

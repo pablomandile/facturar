@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { dashboard, login, register } from '@/routes';
+import PieLegal from '@/components/PieLegal.vue';
 import { Button } from '@/components/ui/button';
 </script>
 
@@ -53,5 +54,7 @@ import { Button } from '@/components/ui/button';
                 </Button>
             </div>
         </main>
+
+        <PieLegal />
     </div>
 </template>

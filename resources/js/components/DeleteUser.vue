@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
 import { useTemplateRef } from 'vue';
+import ExportacionController from '@/actions/App/Http/Controllers/ExportacionController';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -33,7 +34,16 @@ const passwordInput = useTemplateRef('passwordInput');
         >
             <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
                 <p class="font-medium">Atención</p>
-                <p class="text-sm">Tené cuidado: esto no se puede deshacer.</p>
+                <p class="text-sm">
+                    Tené cuidado: esto no se puede deshacer. Se borran también
+                    tus facturas, y conservarlas es obligación tuya:
+                    <a
+                        :href="ExportacionController.datos.url()"
+                        class="underline underline-offset-4"
+                        >descargá tus datos</a
+                    >
+                    antes.
+                </p>
             </div>
             <Dialog>
                 <DialogTrigger as-child>

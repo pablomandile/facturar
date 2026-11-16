@@ -27,6 +27,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $terminos_version
+ * @property Carbon|null $terminos_aceptados_en
  * @property-read Emisor|null $emisor
  */
 #[Fillable(['name', 'email', 'password'])]
@@ -47,7 +49,26 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'terminos_aceptados_en' => 'datetime',
         ];
+    }
+
+    /**
+     * Deja constancia de que aceptó la versión vigente de los términos y la
+     * privacidad. Las dos columnas no son fillable a propósito: solo se
+     * escriben acá.
+     */
+    public function aceptarTerminos(): void
+    {
+        $this->forceFill([
+            'terminos_version' => config('legales.version'),
+            'terminos_aceptados_en' => now(),
+        ])->save();
+    }
+
+    public function aceptoTerminosVigentes(): bool
+    {
+        return $this->terminos_version !== null && $this->terminos_version === config('legales.version');
     }
 
     /**

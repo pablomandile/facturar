@@ -33,7 +33,17 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            // Con AceptoTerminos en todo el grupo web, un usuario sin aceptar
+            // queda frenado en cualquier pantalla: el de los tests acepta.
+            'terminos_version' => config('legales.version'),
+            'terminos_aceptados_en' => now(),
         ];
+    }
+
+    /** Una cuenta que no aceptó la versión vigente de los términos. */
+    public function sinAceptarTerminos(): static
+    {
+        return $this->state(['terminos_version' => null, 'terminos_aceptados_en' => null]);
     }
 
     /**

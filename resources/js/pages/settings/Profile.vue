@@ -3,6 +3,7 @@ import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import ExportacionController from '@/actions/App/Http/Controllers/ExportacionController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -99,6 +100,25 @@ const user = computed(() => page.props.auth.user);
                 >
             </div>
         </Form>
+    </div>
+
+    <!--
+        Lo promete la política de privacidad (derecho de acceso), y es la forma
+        de conservar las facturas antes de eliminar la cuenta.
+    -->
+    <div class="space-y-4">
+        <Heading
+            variant="small"
+            title="Tus datos"
+            description="Un archivo con todos tus datos y el PDF de cada factura autorizada"
+        />
+        <Button variant="outline" as-child>
+            <a
+                :href="ExportacionController.datos.url()"
+                data-test="descargar-mis-datos"
+                >Descargar mis datos</a
+            >
+        </Button>
     </div>
 
     <DeleteUser />
