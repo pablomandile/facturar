@@ -1,0 +1,13 @@
+# Configuración mínima de OpenSSL para generar la clave y el pedido de
+# certificado (CSR) desde PHP.
+#
+# Va con la app y se pasa SIEMPRE en el parámetro `config` de openssl_*: en
+# Windows (Laragon) PHP no encuentra ningún openssl.cnf y openssl_pkey_new()
+# devuelve false sin un mensaje útil. En Linux daría lo mismo usar el del
+# sistema, pero así las dos plataformas generan exactamente lo mismo.
+[ req ]
+distinguished_name = req_distinguished_name
+string_mask = utf8only
+prompt = no
+
+[ req_distinguished_name ]

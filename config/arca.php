@@ -1,0 +1,71 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| ARCA (ex AFIP): web services de autenticación y facturación electrónica
+|--------------------------------------------------------------------------
+|
+| Lo que es de cada emisor (CUIT, certificado, ambiente) vive en la base.
+| Acá solo va lo que es igual para todos.
+|
+*/
+
+return [
+
+    /*
+     * Endpoints por ambiente. Los WSDL viajan con la app (`wsdl`): pedirlos
+     * a ARCA en cada request desde un hosting compartido suma un viaje lento
+     * que además puede estar caído. El endpoint real se fija con `location`.
+     */
+    'ambientes' => [
+        'homologacion' => [
+            'wsaa' => 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms',
+            'wsfe' => 'https://wswhomo.afip.gov.ar/wsfev1/service.asmx',
+        ],
+        'produccion' => [
+            'wsaa' => 'https://wsaa.afip.gov.ar/ws/services/LoginCms',
+            'wsfe' => 'https://servicios1.afip.gov.ar/wsfev1/service.asmx',
+        ],
+    ],
+
+    'wsdl' => [
+        'wsaa' => resource_path('arca/wsdl/wsaa.wsdl'),
+        'wsfe' => resource_path('arca/wsdl/wsfev1.wsdl'),
+    ],
+
+    // Ver el comentario en el propio archivo.
+    'openssl_cnf' => resource_path('arca/openssl.cnf'),
+
+    /*
+     * Segundos. La conexión corta rápido (si no hay salida a ARCA, no tiene
+     * sentido esperar); la lectura no, porque FECAESolicitar tarda.
+     */
+    'timeout_conexion' => (int) env('ARCA_TIMEOUT_CONEXION', 10),
+    'timeout_lectura' => (int) env('ARCA_TIMEOUT_LECTURA', 25),
+
+    /*
+     * Minutos antes del vencimiento del ticket de acceso en que ya se lo
+     * renueva, para que no venza en medio de una emisión.
+     */
+    'margen_ticket_minutos' => 10,
+
+    /*
+     * Tope, en centavos, a partir del cual hay que identificar al
+     * consumidor final (RG 1415, texto según RG 5866/2026: $10.000.000).
+     * Cada emisor lo puede pisar si cambia la norma antes que el código.
+     */
+    'tope_consumidor_final' => 1_000_000_000,
+
+    // Días que se guardan los request/response de cada llamada a ARCA.
+    'retencion_llamadas_dias' => 90,
+
+    // Días antes del vencimiento del certificado en que se empieza a avisar.
+    'aviso_vencimiento_certificado_dias' => 30,
+
+    /*
+     * Directorio para los archivos temporales de la firma del TRA:
+     * openssl_pkcs7_sign() solo acepta rutas. Se borran en el mismo request.
+     */
+    'directorio_temporal' => storage_path('app/private/arca/tmp'),
+
+];

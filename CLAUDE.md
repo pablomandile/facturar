@@ -62,8 +62,9 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 
 - Un **FormRequest por escritura**, una **Policy por modelo** (todo se filtra por el emisor
   del usuario), la lógica en **servicios**, los controladores solo orquestan.
-- **Enums de PHP** para todo lo que tenga casos fijos. Si se agrega un caso, va también al
-  ENUM de la migración de MySQL.
+- **Enums de PHP** para todo lo que tenga casos fijos, guardados en columnas **`string`**, no
+  ENUM de MySQL: sqlite no valida ENUM, así que un caso nuevo pasaría los tests y reventaría
+  recién en producción al primer guardado (lección de misalud).
 - Eager loading explícito; soft deletes en las tablas de dominio.
 - **Secretos con el cast `encrypted`** en columnas `text`: la clave privada del certificado y
   el token y el sign del ticket de acceso. Nada más se cifra: el resto necesita `WHERE`,
@@ -93,6 +94,23 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - **Consumidor final**: hasta el tope vigente no se identifica al receptor (`DocTipo 99`,
   `DocNro 0`). El tope está en `config/arca.php`, no hardcodeado.
 - **WSDL locales** en `resources/arca/wsdl/`; el endpoint se fija con `location` por ambiente.
+  Un solo WSDL de WSAA sirve para los dos ambientes: el elemento del pedido usa el mismo
+  namespace (`http://wsaa.view.sua.dvadac.desein.afip.gov`) en homologación y producción.
+- **OpenSSL siempre con `config`**: toda llamada `openssl_pkey_new`, `openssl_pkey_export` y
+  `openssl_csr_new` lleva `GeneradorDeCertificados::opcionesOpenSsl()`, que apunta a
+  `resources/arca/openssl.cnf`. En Windows PHP no encuentra ningún `openssl.cnf` y esas
+  funciones devuelven `false` sin un mensaje útil. `openssl_csr_new` recibe la clave **por
+  referencia**: pasale una variable, no el resultado de una función.
+- **Certificados**: la app genera la clave y el CSR; la persona solo sube el CSR a ARCA y trae
+  el certificado. Al cargarlo se valida que corresponda a la clave, al CUIT
+  (`serialNumber=CUIT …`) y al ambiente (el emisor del certificado es "Computadores Test" en
+  homologación y "Computadores" en producción). Al renovar, el anterior sigue vigente hasta
+  que llega el nuevo.
+- **Puntos de venta**: se cargan a mano. En producción tienen que existir en ARCA con el
+  sistema "Factura Electrónica - Monotributo - Web Services"; en homologación no hace falta.
+- `php artisan arca:diagnostico` dice si el servidor puede hablar con ARCA (extensiones,
+  OpenSSL, WSDL, directorio temporal, salida a los cuatro endpoints y desvío del reloj).
+  Se corre en cada deploy.
 - **Tests sin red**: todo pasa por la interfaz `TransporteSoap`; los tests usan dobles y
   fixtures. Contra homologación real se prueba con los comandos `arca:*`.
 
@@ -118,4 +136,11 @@ php artisan test          # Pest
 ## Estado
 
 Hecho: andamiaje (Laravel 13 + Inertia 3 + Fortify + Wayfinder, MySQL, Pest 4), todo el texto
-en español, CI con PHP 8.4 y MySQL.
+en español, CI con PHP 8.4 y MySQL. Etapa 1: emisor, certificados (clave + CSR, carga y
+validación del certificado de ARCA), puntos de venta, pantalla "Datos fiscales" y
+`arca:diagnostico`.
+
+Sigue: Etapa 2, la capa ARCA (WSAA, ticket de acceso, WSFEv1 y el botón "Probar conexión").
+
+> **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
+> pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.
