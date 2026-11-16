@@ -50,6 +50,12 @@ return [
     'margen_ticket_minutos' => 10,
 
     /*
+     * Segundos que una emisión espera a que termine otra del mismo punto de
+     * venta antes de avisar que está ocupado.
+     */
+    'espera_lock_emision_segundos' => 10,
+
+    /*
      * Tope, en centavos, a partir del cual hay que identificar al
      * consumidor final (RG 1415, texto según RG 5866/2026: $10.000.000).
      * Cada emisor lo puede pisar si cambia la norma antes que el código.

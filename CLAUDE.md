@@ -123,6 +123,23 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - Cada llamada queda en `llamadas_arca` con token y sign tachados
   (`RegistradorDeLlamadas::tachar`), y se purga con `model:prune` a los 90 días.
 
+### Emisión
+
+- **`EmisorDeComprobantes` es el único que cambia el estado** de un comprobante hacia
+  Pendiente, Autorizado, Rechazado o Error. Cada resultado posible de ARCA tiene su test en
+  `EmisionTest`.
+- Un comprobante **Autorizado no se modifica ni se borra**: lo impiden la Policy y un
+  `saving`/`deleting` en el modelo (se anula con nota de crédito, en una etapa posterior).
+- `Comprobante` declara en `$attributes` los mismos defaults que la migración. Sin eso, un
+  comprobante recién creado tenía `moneda` en null en memoria y se mandaba a ARCA sin
+  `MonId`: los defaults de la base no llegan al modelo hasta releerlo.
+- El receptor se **copia** al comprobante; editar o borrar el cliente no toca la factura.
+- `numero` se asigna recién al emitir y vuelve a null en Rechazado o Error: un rechazo no
+  consume el número.
+- La fecha tiene que estar dentro de ±5 días (productos) o ±10 (servicios) y no ser anterior
+  a la última autorizada del punto de venta. Se valida en el FormRequest y otra vez al emitir,
+  porque un borrador puede quedar viejo.
+
 ### Tests de ARCA
 
 - `tests/TestCase.php` registra una fábrica de transportes que **explota** si un test llega
@@ -170,7 +187,11 @@ formato del TRA y la firma (rechaza solo el certificado autofirmado, como corres
 Etapa 3: clientes (CUIT, CUIL o DNI con su verificador, condición frente al IVA coherente con
 el documento, búsqueda, restauración de borrados). Consumidor final no es un cliente.
 
-Sigue: Etapa 4, la emisión de la factura C.
+Etapa 4: la emisión de la factura C (borradores con ítems, `EmisorDeComprobantes` con lock
+por punto de venta, reintento único ante 10016, consulta tras un corte, `Pendiente` resuelto
+por `arca:reconciliar-pendientes` cada 5 minutos, `arca:emitir-prueba` para homologación).
+
+Sigue: Etapa 5, el PDF con el QR de ARCA, el panel y la revisión mobile.
 
 > **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
 > pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.

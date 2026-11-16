@@ -11,6 +11,7 @@ use App\Exceptions\Arca\ErrorDeWsfe;
 use App\Models\Emisor;
 use App\Support\Arca\ComprobanteConsultado;
 use App\Support\Arca\EstadoDelServidor;
+use App\Support\Arca\RespuestaDeCae;
 use UnexpectedValueException;
 
 /**
@@ -53,6 +54,31 @@ class ClienteWsfe
         ]);
 
         return (int) ($resultado->CbteNro ?? 0);
+    }
+
+    /**
+     * Pide el CAE para un comprobante ya serializado (ver
+     * `SerializadorDeFacturaC`). Un rechazo no es una excepción: viene como
+     * Resultado R con sus observaciones.
+     *
+     * @param  array<string, mixed>  $pedido  el FeCAEReq
+     */
+    public function solicitarCae(Emisor $emisor, array $pedido, ?int $comprobanteId = null): RespuestaDeCae
+    {
+        $resultado = $this->llamar($emisor, 'FECAESolicitar', ['FeCAEReq' => $pedido], comprobanteId: $comprobanteId);
+
+        $detalle = LectorDeRespuestasWsfe::lista($resultado->FeDetResp->FECAEDetResponse ?? null)[0]
+            ?? throw new UnexpectedValueException('FECAESolicitar no devolvió el detalle del comprobante.');
+        $vencimiento = trim((string) ($detalle->CAEFchVto ?? ''));
+        $cae = trim((string) ($detalle->CAE ?? ''));
+
+        return new RespuestaDeCae(
+            resultado: (string) ($detalle->Resultado ?? $resultado->FeCabResp->Resultado ?? ''),
+            cae: $cae === '' ? null : $cae,
+            caeVencimiento: $vencimiento === '' ? null : (new RelojFiscal)->desdeYmd($vencimiento),
+            observaciones: LectorDeRespuestasWsfe::observaciones($detalle),
+            eventos: LectorDeRespuestasWsfe::eventos($resultado),
+        );
     }
 
     /** Un comprobante como lo tiene ARCA; null si no existe. */

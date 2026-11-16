@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Landmark, LayoutGrid, Users } from '@lucide/vue';
+import { Landmark, LayoutGrid, ReceiptText, Users } from '@lucide/vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
+import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -23,6 +24,11 @@ const mainNavItems: NavItem[] = [
         title: 'Panel',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Facturas',
+        href: ComprobanteController.index(),
+        icon: ReceiptText,
     },
     {
         title: 'Clientes',

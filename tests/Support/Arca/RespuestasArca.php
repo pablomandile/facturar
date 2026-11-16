@@ -65,6 +65,39 @@ final class RespuestasArca
         return self::conErrores($metodo, [[602, 'Sin Resultados: - Metodo '.$metodo]]);
     }
 
+    /**
+     * La respuesta de FECAESolicitar. Autorizada por defecto; con
+     * `$resultado = 'R'` y observaciones, un rechazo.
+     *
+     * @param  list<array{int, string}>  $observaciones
+     */
+    public static function cae(string $resultado = 'A', ?string $cae = '76461234567890', string $vencimiento = '20261126', array $observaciones = [], int $numero = 1): object
+    {
+        $detalle = (object) [
+            'Concepto' => 1,
+            'DocTipo' => 99,
+            'DocNro' => 0,
+            'CbteDesde' => $numero,
+            'CbteHasta' => $numero,
+            'CbteFch' => '20261116',
+            'Resultado' => $resultado,
+            'CAE' => $resultado === 'A' ? $cae : '',
+            'CAEFchVto' => $resultado === 'A' ? $vencimiento : '',
+        ];
+
+        if ($observaciones !== []) {
+            $detalle->Observaciones = (object) ['Obs' => array_map(
+                fn (array $o): object => (object) ['Code' => $o[0], 'Msg' => $o[1]],
+                $observaciones,
+            )];
+        }
+
+        return (object) ['FECAESolicitarResult' => (object) [
+            'FeCabResp' => (object) ['Cuit' => 20111111112, 'PtoVta' => 1, 'CbteTipo' => 11, 'FchProceso' => '20261116101500', 'CantReg' => 1, 'Resultado' => $resultado, 'Reproceso' => 'N'],
+            'FeDetResp' => (object) ['FECAEDetResponse' => [$detalle]],
+        ]];
+    }
+
     /** @param  array<string, mixed>  $cambios */
     public static function comprobante(array $cambios = []): object
     {

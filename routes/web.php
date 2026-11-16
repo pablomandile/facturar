@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ComprobanteController;
 use App\Http\Controllers\ConexionController;
 use App\Http\Controllers\EmisorController;
 use App\Http\Controllers\PuntoDeVentaController;
@@ -36,6 +37,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
         Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
+
+        Route::get('comprobantes', [ComprobanteController::class, 'index'])->name('comprobantes.index');
+        Route::get('comprobantes/nuevo', [ComprobanteController::class, 'create'])->name('comprobantes.create');
+        Route::post('comprobantes', [ComprobanteController::class, 'store'])->name('comprobantes.store');
+        Route::get('comprobantes/{comprobante}', [ComprobanteController::class, 'show'])->name('comprobantes.show');
+        Route::get('comprobantes/{comprobante}/editar', [ComprobanteController::class, 'edit'])->name('comprobantes.edit');
+        Route::put('comprobantes/{comprobante}', [ComprobanteController::class, 'update'])->name('comprobantes.update');
+        Route::post('comprobantes/{comprobante}/emitir', [ComprobanteController::class, 'emitir'])->name('comprobantes.emitir');
+        Route::delete('comprobantes/{comprobante}', [ComprobanteController::class, 'destroy'])->name('comprobantes.destroy');
     });
 });
 
