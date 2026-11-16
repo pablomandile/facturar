@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\CertificadoController;
+use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ConexionController;
 use App\Http\Controllers\EmisorController;
 use App\Http\Controllers\PuntoDeVentaController;
+use App\Http\Middleware\RequiereEmisor;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -27,6 +29,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('emisor/puntos-de-venta', [PuntoDeVentaController::class, 'store'])->name('puntos-de-venta.store');
     Route::put('emisor/puntos-de-venta/{puntoDeVenta}', [PuntoDeVentaController::class, 'update'])->name('puntos-de-venta.update');
     Route::delete('emisor/puntos-de-venta/{puntoDeVenta}', [PuntoDeVentaController::class, 'destroy'])->name('puntos-de-venta.destroy');
+
+    // Todo lo que factura necesita los datos fiscales cargados.
+    Route::middleware(RequiereEmisor::class)->group(function () {
+        Route::get('clientes', [ClienteController::class, 'index'])->name('clientes.index');
+        Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
+        Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
+        Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
+    });
 });
 
 require __DIR__.'/settings.php';

@@ -167,7 +167,10 @@ WSFEv1 para consultas, registro de llamadas, comandos `arca:*` y el botón "Prob
 conexión"). Verificado contra homologación real: `FEDummy` responde y `loginCms` acepta el
 formato del TRA y la firma (rechaza solo el certificado autofirmado, como corresponde).
 
-Sigue: Etapa 3, clientes; después la Etapa 4, la emisión de la factura C.
+Etapa 3: clientes (CUIT, CUIL o DNI con su verificador, condición frente al IVA coherente con
+el documento, búsqueda, restauración de borrados). Consumidor final no es un cliente.
+
+Sigue: Etapa 4, la emisión de la factura C.
 
 > **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
 > pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.
