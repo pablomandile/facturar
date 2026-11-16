@@ -140,6 +140,18 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   a la última autorizada del punto de venta. Se valida en el FormRequest y otra vez al emitir,
   porque un borrador puede quedar viejo.
 
+### PDF y QR
+
+- El PDF se genera al vuelo y solo para facturas autorizadas: todo lo que lleva está en la base
+  y una autorizada no cambia. Lleva la marca "sin validez fiscal" si es de homologación.
+- dompdf no soporta flexbox ni grid: `resources/views/pdf/factura-c.blade.php` va con tablas.
+  Sin `isFontSubsettingEnabled` embebe la fuente entera y el PDF pasa de 30 KB a casi 900 KB.
+- El QR (RG 4892) es `https://www.afip.gob.ar/fe/qr/?p=` + base64 del JSON, con números como
+  números (`cuit`, `nroCmp`, `codAut`). A consumidor final sin identificar no se le informa
+  receptor. Se probó: el PNG se decodifica y ARCA redirige la URL a su página de constatación.
+- `bacon/bacon-qr-code` está declarado en `composer.json` aunque Fortify ya lo trae: lo usamos
+  directamente y no conviene depender de una dependencia ajena.
+
 ### Tests de ARCA
 
 - `tests/TestCase.php` registra una fábrica de transportes que **explota** si un test llega
@@ -191,7 +203,12 @@ Etapa 4: la emisión de la factura C (borradores con ítems, `EmisorDeComprobant
 por punto de venta, reintento único ante 10016, consulta tras un corte, `Pendiente` resuelto
 por `arca:reconciliar-pendientes` cada 5 minutos, `arca:emitir-prueba` para homologación).
 
-Sigue: Etapa 5, el PDF con el QR de ARCA, el panel y la revisión mobile.
+Etapa 5: el PDF de la factura C con el QR de ARCA (dompdf, maquetado con tablas, fuente
+DejaVu con subsetting), el panel (configuración pendiente, facturado del mes, vencimiento del
+certificado, últimas facturas) y la revisión a 360 px de todas las pantallas.
+
+Sigue: Etapa 6, producción (PWA, términos y privacidad, aviso de cookies, deploy a Hostinger,
+cron de hPanel para `schedule:run`, certificado de producción).
 
 > **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
 > pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.

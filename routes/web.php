@@ -3,7 +3,9 @@
 use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ComprobanteController;
+use App\Http\Controllers\ComprobantePdfController;
 use App\Http\Controllers\ConexionController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmisorController;
 use App\Http\Controllers\PuntoDeVentaController;
 use App\Http\Middleware\RequiereEmisor;
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     // Configuración fiscal: datos del emisor, certificado y puntos de venta.
     Route::get('emisor', [EmisorController::class, 'edit'])->name('emisor.edit');
@@ -45,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('comprobantes/{comprobante}/editar', [ComprobanteController::class, 'edit'])->name('comprobantes.edit');
         Route::put('comprobantes/{comprobante}', [ComprobanteController::class, 'update'])->name('comprobantes.update');
         Route::post('comprobantes/{comprobante}/emitir', [ComprobanteController::class, 'emitir'])->name('comprobantes.emitir');
+        Route::get('comprobantes/{comprobante}/pdf', [ComprobantePdfController::class, 'show'])->name('comprobantes.pdf');
         Route::delete('comprobantes/{comprobante}', [ComprobanteController::class, 'destroy'])->name('comprobantes.destroy');
     });
 });

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
+import ComprobantePdfController from '@/actions/App/Http/Controllers/ComprobantePdfController';
 import EstadoBadge from '@/components/comprobantes/EstadoBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -160,6 +161,14 @@ function borrar(): void {
         </Card>
 
         <div class="flex flex-wrap gap-2">
+            <Button v-if="comprobante.estado === 'autorizado'" as-child>
+                <a
+                    :href="ComprobantePdfController.show.url(comprobante.id)"
+                    download
+                    data-test="descargar-pdf"
+                    >Descargar PDF</a
+                >
+            </Button>
             <Form
                 v-if="puede.emitir"
                 v-bind="ComprobanteController.emitir.form(comprobante.id)"
