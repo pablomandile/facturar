@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { Landmark, LayoutGrid, ReceiptText, Users } from '@lucide/vue';
+import { onUnmounted } from 'vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import AppLogo from '@/components/AppLogo.vue';
+import BotonInstalar from '@/components/BotonInstalar.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -15,9 +17,27 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
+
+/*
+ * En el celular el menú es un sheet a pantalla completa, y navegar en una SPA
+ * no lo desmonta: quedaba abierto tapando la pantalla nueva, con el body
+ * bloqueado. Se cierra en el router (no en cada enlace, que alguno se olvida),
+ * con `navigate` (la página efectivamente cambió) y solo en mobile: en
+ * escritorio la barra es fija. Ver la skill overlays-al-navegar.
+ */
+const { isMobile, setOpenMobile } = useSidebar();
+
+onUnmounted(
+    router.on('navigate', () => {
+        if (isMobile.value) {
+            setOpenMobile(false);
+        }
+    }),
+);
 
 const mainNavItems: NavItem[] = [
     {
@@ -62,6 +82,15 @@ const mainNavItems: NavItem[] = [
         </SidebarContent>
 
         <SidebarFooter>
+            <!--
+                En el pie del menú: aparece una sola vez y anda igual en el
+                menú del celular y en escritorio. Se esconde solo si la app ya
+                está instalada o el navegador no puede instalarla.
+            -->
+            <div class="px-2 group-data-[collapsible=icon]:hidden">
+                <BotonInstalar class="w-full" />
+            </div>
+
             <NavUser />
         </SidebarFooter>
     </Sidebar>

@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
 
+// La pantalla que muestra el service worker sin conexión. Blade suelto: se
+// dibuja sin los assets compilados.
+Route::view('offline', 'offline')->name('offline');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 

@@ -2,8 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Inertia\Support\Header;
+use Symfony\Component\HttpFoundation\Response;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -15,6 +18,36 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /**
+     * Una misma URL de Inertia contesta dos cuerpos distintos según lleve o no
+     * el header X-Inertia: el HTML de arranque, o el JSON de la página.
+     *
+     * Lo único que separa esas dos respuestas para una caché HTTP es
+     * `Vary: X-Inertia`. En Hostinger el CDN lo BORRA al comprimir con brotli,
+     * y el `Cache-Control: no-cache` que Symfony pone por defecto permite
+     * guardar (solo obliga a revalidar). Cuando Chrome restaura una pestaña
+     * descartada, esa navegación reusa lo guardado sin revalidar: se ve el
+     * JSON crudo en pantalla y la app nunca arranca (lo vivió misalud; ver la
+     * skill inertia-json-crudo).
+     *
+     * `no-store` en la respuesta XHR prohíbe guardarla. En el documento HTML
+     * no: desactivaría el back/forward cache de Chrome.
+     *
+     * @param  Closure(Request): Response  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $response = parent::handle($request, $next);
+
+        $response->headers->set('Vary', Header::INERTIA.', Accept-Encoding');
+
+        if ($request->header(Header::INERTIA)) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        }
+
+        return $response;
+    }
 
     /**
      * Determines the current asset version.

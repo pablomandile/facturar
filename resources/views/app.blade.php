@@ -2,7 +2,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"  @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {{-- viewport-fit=cover habilita env(safe-area-inset-*) en celulares con muesca --}}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -30,9 +31,55 @@
             }
         </style>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        {{--
+            El `?v=` no es decorativo: sin él, la caché HTTP y la base de
+            favicons de Chrome mobile siguen sirviendo el ícono viejo para
+            siempre, porque la URL no cambia. Al cambiar un ícono hay que subir
+            este número, el del manifest y el nombre de CACHE en public/sw.js.
+        --}}
+        <link rel="icon" href="/favicon.svg?v=1" type="image/svg+xml">
+        <link rel="icon" href="/icons/favicon-32.png?v=1" type="image/png" sizes="32x32">
+        <link rel="icon" href="/icons/favicon-48.png?v=1" type="image/png" sizes="48x48">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1">
+
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#1f4e8c">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="FacturAR">
+
+        {{--
+            Chrome dispara `beforeinstallprompt` apenas carga la página, casi
+            siempre ANTES de que monte Vue. Si se escuchara desde un componente
+            el evento ya pasó y el botón de instalar no aparece nunca, de forma
+            intermitente. Por eso se captura acá, antes de los bundles.
+        --}}
+        <script>
+            (function () {
+                window.__pwaInstall = { prompt: null, instalada: false };
+
+                window.addEventListener('beforeinstallprompt', function (e) {
+                    e.preventDefault(); // el prompt lo lanzamos desde el botón
+                    window.__pwaInstall.prompt = e;
+                    window.dispatchEvent(new CustomEvent('pwa:instalable'));
+                });
+
+                window.addEventListener('appinstalled', function () {
+                    window.__pwaInstall.prompt = null;
+                    window.__pwaInstall.instalada = true;
+                    window.dispatchEvent(new CustomEvent('pwa:instalada'));
+                });
+            })();
+        </script>
+
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function () {
+                    navigator.serviceWorker.register('/sw.js').catch(function () {});
+                });
+            }
+        </script>
 
         @fonts
 
