@@ -76,7 +76,7 @@ it('acepta el certificado en formato binario (DER)', function () {
     generador()->incorporar($pendiente, $der);
 
     expect($pendiente->fresh()?->estado)->toBe(EstadoCertificado::Vigente);
-});
+})->repeat(20); // La firma es aleatoria: el bug del trim() aparecía uno de cada tantos.
 
 it('rechaza lo que no sirve, con un mensaje que dice qué hacer', function (Closure $armar, string $mensaje) {
     $emisor = Emisor::factory()->create();

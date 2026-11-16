@@ -174,10 +174,11 @@ class GeneradorDeCertificados
      */
     private function normalizarPem(string $contenido): string
     {
-        $contenido = trim($contenido);
-
+        // El trim solo para el PEM: un DER es binario y puede terminar en un
+        // byte que trim() toma por espacio (\0, \n, 0x20), y recortarlo rompe
+        // la firma. Pasaba en uno de cada tantos certificados.
         if (str_contains($contenido, '-----BEGIN CERTIFICATE-----')) {
-            return $contenido."\n";
+            return trim($contenido)."\n";
         }
 
         return "-----BEGIN CERTIFICATE-----\n"
