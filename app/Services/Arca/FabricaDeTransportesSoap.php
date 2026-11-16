@@ -34,6 +34,9 @@ class FabricaDeTransportesSoap implements FabricaDeTransportes
             'connection_timeout' => (int) config('arca.timeout_conexion'),
             'cache_wsdl' => app()->environment('production') ? WSDL_CACHE_BOTH : WSDL_CACHE_NONE,
             'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
+            // Ver config/arca.php: sin esto, el WSFE de producción no conecta
+            // desde un OpenSSL 3 con el nivel de seguridad por defecto.
+            'stream_context' => stream_context_create(['ssl' => ['ciphers' => (string) config('arca.cifrados_tls')]]),
         ]);
 
         return new TransporteSoapReal($cliente, (int) config('arca.timeout_lectura'));

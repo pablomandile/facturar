@@ -114,6 +114,12 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - **Horas que manda ARCA → `->utc()` antes de guardarlas.** Vienen con `-03:00` y Eloquent
   guarda la hora tal cual, sin convertir: el vencimiento del ticket quedaba tres horas antes
   y se renovaba antes de tiempo. Lo cubre `ProveedorDeTicketsTest` releyendo de la base.
+- **El WSFE de producción no conecta con OpenSSL 3 sin bajar el nivel de seguridad.**
+  `servicios1.afip.gov.ar` negocia una clave Diffie-Hellman que OpenSSL 3 rechaza en el
+  handshake ("Could not connect to host"). En Laragon no pasa; en Hostinger (OpenSSL 3.5)
+  sí, medido el 16/11/2026. `config('arca.cifrados_tls')` (`DEFAULT@SECLEVEL=1`) va en el
+  `stream_context` de cada SoapClient, solo para ARCA, y `arca:diagnostico` prueba con los
+  mismos cifrados: si no, marcaría falla donde facturar anda.
 - **WSAA de homologación tarda 10 s en contestar un error** (medido también con `curl`: es
   del servidor, no de PHP). El timeout de lectura (`config/arca.php`, 25 s) tiene que seguir
   siendo mayor.

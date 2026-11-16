@@ -103,7 +103,11 @@ class VerificadorDeEntorno
     private function salida(string $nombre, string $url): ChequeoDeEntorno
     {
         try {
-            $respuesta = Http::timeout((int) config('arca.timeout_conexion'))->get($url);
+            // Con los mismos cifrados que usa la app: si no, en Hostinger el WSFE
+            // de producción da "sin conexión" aunque facturar ande.
+            $respuesta = Http::timeout((int) config('arca.timeout_conexion'))
+                ->withOptions(['curl' => [CURLOPT_SSL_CIPHER_LIST => (string) config('arca.cifrados_tls')]])
+                ->get($url);
 
             return $respuesta->successful()
                 ? ChequeoDeEntorno::bien($nombre, 'responde')

@@ -37,6 +37,19 @@ return [
     'openssl_cnf' => resource_path('arca/openssl.cnf'),
 
     /*
+     * Cifrados TLS para hablar con ARCA, y SOLO con ARCA (va en el contexto de
+     * cada SoapClient, no en la config global de PHP).
+     *
+     * servicios1.afip.gov.ar (WSFE de producción) negocia una clave
+     * Diffie-Hellman que OpenSSL 3 rechaza con su nivel de seguridad por
+     * defecto: el handshake falla y la app dice "no se pudo conectar". Medido
+     * en Hostinger (OpenSSL 3.5) el 16/11/2026: sin esto, ninguna factura de
+     * producción sale; con SECLEVEL=1, FEDummy responde OK. En Laragon no
+     * fallaba, así que no se ve en local.
+     */
+    'cifrados_tls' => env('ARCA_CIFRADOS_TLS', 'DEFAULT@SECLEVEL=1'),
+
+    /*
      * Segundos. La conexión corta rápido (si no hay salida a ARCA, no tiene
      * sentido esperar); la lectura no, porque FECAESolicitar tarda.
      */
