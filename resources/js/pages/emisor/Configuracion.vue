@@ -4,6 +4,7 @@ import { CircleCheck, Circle } from '@lucide/vue';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import CertificadoArca from '@/components/emisor/CertificadoArca.vue';
 import DatosFiscales from '@/components/emisor/DatosFiscales.vue';
+import ProbarConexion from '@/components/emisor/ProbarConexion.vue';
 import PuntosDeVenta from '@/components/emisor/PuntosDeVenta.vue';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -130,6 +131,18 @@ const resumen = [
                     :ambiente="props.emisor.ambiente"
                     :puntos="props.puntosDeVenta"
                 />
+            </CardContent>
+        </Card>
+
+        <Card :class="{ 'opacity-60': !props.pasos.certificado }">
+            <CardHeader>
+                <CardTitle>4. Probar la conexión con ARCA</CardTitle>
+                <CardDescription v-if="!props.pasos.certificado">
+                    Primero cargá el certificado.
+                </CardDescription>
+            </CardHeader>
+            <CardContent v-if="props.emisor">
+                <ProbarConexion :habilitado="props.pasos.certificado" />
             </CardContent>
         </Card>
     </div>

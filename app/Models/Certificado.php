@@ -6,12 +6,12 @@ namespace App\Models;
 
 use App\Enums\Arca\Ambiente;
 use App\Enums\Arca\EstadoCertificado;
+use Carbon\CarbonImmutable;
 use Database\Factories\CertificadoFactory;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * La clave y el certificado de un emisor para un ambiente.
@@ -28,11 +28,11 @@ use Illuminate\Support\Carbon;
  * @property string $clave_privada
  * @property string $csr
  * @property string|null $certificado
- * @property Carbon|null $valido_desde
- * @property Carbon|null $valido_hasta
+ * @property CarbonImmutable|null $valido_desde
+ * @property CarbonImmutable|null $valido_hasta
  * @property EstadoCertificado $estado
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  * @property-read Emisor $emisor
  */
 #[Hidden(['clave_privada'])]

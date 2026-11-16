@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CertificadoController;
+use App\Http\Controllers\ConexionController;
 use App\Http\Controllers\EmisorController;
 use App\Http\Controllers\PuntoDeVentaController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // POST y no PUT: lleva un archivo, y PHP no parsea multipart en un PUT.
     Route::post('emisor/certificados/{certificado}', [CertificadoController::class, 'update'])->name('certificados.update');
     Route::delete('emisor/certificados/{certificado}', [CertificadoController::class, 'destroy'])->name('certificados.destroy');
+
+    // Cada prueba pide hasta tres cosas a ARCA: con un límite alcanza.
+    Route::post('emisor/conexion', [ConexionController::class, 'store'])->middleware('throttle:6,1')->name('conexion.store');
 
     Route::post('emisor/puntos-de-venta', [PuntoDeVentaController::class, 'store'])->name('puntos-de-venta.store');
     Route::put('emisor/puntos-de-venta/{puntoDeVenta}', [PuntoDeVentaController::class, 'update'])->name('puntos-de-venta.update');

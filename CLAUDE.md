@@ -111,6 +111,28 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - `php artisan arca:diagnostico` dice si el servidor puede hablar con ARCA (extensiones,
   OpenSSL, WSDL, directorio temporal, salida a los cuatro endpoints y desvío del reloj).
   Se corre en cada deploy.
+- **Horas que manda ARCA → `->utc()` antes de guardarlas.** Vienen con `-03:00` y Eloquent
+  guarda la hora tal cual, sin convertir: el vencimiento del ticket quedaba tres horas antes
+  y se renovaba antes de tiempo. Lo cubre `ProveedorDeTicketsTest` releyendo de la base.
+- **WSAA de homologación tarda 10 s en contestar un error** (medido también con `curl`: es
+  del servidor, no de PHP). El timeout de lectura (`config/arca.php`, 25 s) tiene que seguir
+  siendo mayor.
+- **Los errores de WSFE vienen adentro de la respuesta** (`Errors`), no como SOAP Fault.
+  `ClienteWsfe::llamar()` los convierte en `ErrorDeWsfe`; el 602 ("sin resultados") lo trata
+  cada método como lista vacía o `null`, no como error.
+- Cada llamada queda en `llamadas_arca` con token y sign tachados
+  (`RegistradorDeLlamadas::tachar`), y se purga con `model:prune` a los 90 días.
+
+### Tests de ARCA
+
+- `tests/TestCase.php` registra una fábrica de transportes que **explota** si un test llega
+  a ARCA: el que lo necesite llama a `arcaFalso()` (en `tests/Pest.php`) antes de resolver
+  cualquier servicio, y prepara respuestas con `RespuestasArca`.
+- `SoapClientGrabado` es un `SoapClient` real con el WSDL real que contesta con XML grabado de
+  homologación (`tests/Fixtures/arca/`): prueba que el WSDL y la lectura coinciden con lo que
+  manda ARCA de verdad.
+- Contra homologación real, desde la consola: `arca:dummy`, `arca:ticket`, `arca:ultimo`,
+  `arca:consultar` y `arca:parametros`, todos con el emisor por id o CUIT.
 - **Tests sin red**: todo pasa por la interfaz `TransporteSoap`; los tests usan dobles y
   fixtures. Contra homologación real se prueba con los comandos `arca:*`.
 
@@ -140,7 +162,12 @@ en español, CI con PHP 8.4 y MySQL. Etapa 1: emisor, certificados (clave + CSR,
 validación del certificado de ARCA), puntos de venta, pantalla "Datos fiscales" y
 `arca:diagnostico`.
 
-Sigue: Etapa 2, la capa ARCA (WSAA, ticket de acceso, WSFEv1 y el botón "Probar conexión").
+Etapa 2: la capa ARCA (transporte SOAP, TRA y firma, WSAA con ticket persistido y lock,
+WSFEv1 para consultas, registro de llamadas, comandos `arca:*` y el botón "Probar la
+conexión"). Verificado contra homologación real: `FEDummy` responde y `loginCms` acepta el
+formato del TRA y la firma (rechaza solo el certificado autofirmado, como corresponde).
+
+Sigue: Etapa 3, clientes; después la Etapa 4, la emisión de la factura C.
 
 > **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
 > pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.

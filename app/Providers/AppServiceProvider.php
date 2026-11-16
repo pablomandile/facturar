@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\Arca\FabricaDeTransportes;
+use App\Services\Arca\FabricaDeTransportesSoap;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // El cable hacia ARCA. Los tests lo reemplazan por uno falso.
+        $this->app->bind(FabricaDeTransportes::class, FabricaDeTransportesSoap::class);
     }
 
     /**

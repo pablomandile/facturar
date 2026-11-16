@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\Arca\Ambiente;
 use App\Enums\Arca\EstadoCertificado;
 use App\Support\Arca\Cuit;
+use Carbon\CarbonImmutable;
 use Database\Factories\EmisorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
 
 /**
  * Quién factura: el perfil fiscal de una cuenta. Todo lo que es del emisor
@@ -27,12 +27,12 @@ use Illuminate\Support\Carbon;
  * @property string $razon_social
  * @property string $domicilio_fiscal
  * @property string|null $ingresos_brutos
- * @property Carbon $inicio_actividades
+ * @property CarbonImmutable $inicio_actividades
  * @property Ambiente $ambiente
  * @property int|null $tope_consumidor_final
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @property Carbon|null $deleted_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $deleted_at
  * @property-read User $usuario
  */
 #[Fillable(['cuit', 'razon_social', 'domicilio_fiscal', 'ingresos_brutos', 'inicio_actividades', 'ambiente'])]
