@@ -186,6 +186,23 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   la suite. Si algún día entra algo no necesario (analíticas), pasa a consentimiento
   previo: no se carga hasta aceptar, y se sube la versión del aviso.
 
+### Ingreso con Google
+
+- Socialite, portado de MiSalud. Sin `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` en el `.env`
+  no hay botón y `/auth/google/*` da 404. El redirect es `APP_URL` + `/auth/google/callback`
+  y tiene que estar autorizado en Google Cloud tal cual.
+- **El email manda**: si coincide con una cuenta existente se le vincula el `google_id`
+  (se busca primero por `google_id`, que no cambia). Se rechaza si Google no dice que el
+  email está verificado: si no, cualquiera podría quedarse con el certificado de otro.
+- La cuenta nueva nace **sin contraseña** (`password` nullable) y sin términos aceptados:
+  `AceptoTerminos` la frena en el primer pedido.
+- **El alias `password.confirm` es `ConfirmarClaveSiLaTiene`** (`bootstrap/app.php`): lo
+  usan la pantalla de seguridad y las rutas de 2FA y llaves de Fortify, y sin contraseña
+  no se podría confirmar nunca. Cambiar y eliminar la cuenta no piden la que no existe
+  (`auth.tieneContrasena` en las props compartidas).
+- Quien activó el 2FA pasa por el desafío de Fortify también al entrar con Google.
+- `google_id` está en `Hidden`: no viaja al navegador.
+
 ### Tests de ARCA
 
 - `tests/TestCase.php` registra una fábrica de transportes que **explota** si un test llega
@@ -244,8 +261,10 @@ certificado, últimas facturas) y la revisión a 360 px de todas las pantallas.
 Etapa 6, local: PWA instalable con marca propia, términos y privacidad con aceptación,
 descarga de datos, aviso y página de cookies.
 
-Sigue: el deploy a Hostinger (cron de hPanel para `schedule:run`, `LEGALES_*` en el `.env`,
-`arca:diagnostico` en el server, certificado de producción).
+Desplegado en `https://facturar.bambudev.com.ar` (17/11/2026): base, correo, cron de
+`schedule:run` y `arca:diagnostico` en orden. Ingreso con Google.
+
+Sigue: el certificado de producción y la primera factura real.
 
 > **Para probar contra ARCA de verdad hace falta la clave fiscal de una persona**: generar el
 > pedido acá, subirlo a WSASS y traer el certificado. No se puede automatizar.

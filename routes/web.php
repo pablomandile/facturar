@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ComprobanteController;
@@ -23,6 +24,15 @@ Route::view('offline', 'offline')->name('offline');
 Route::get('terminos', [LegalesController::class, 'terminos'])->name('terminos');
 Route::get('privacidad', [LegalesController::class, 'privacidad'])->name('privacidad');
 Route::inertia('cookies', 'Cookies')->name('cookies');
+
+/*
+ * Ingreso con Google, bajo /auth como las rutas de Fortify. `guest`: con la
+ * sesión abierta, rehacer el flujo solo puede cambiarle la cuenta sin querer.
+ */
+Route::middleware('guest')->group(function () {
+    Route::get('auth/google/redirect', [GoogleController::class, 'redirigir'])->name('google.redirect');
+    Route::get('auth/google/callback', [GoogleController::class, 'volver'])->name('google.callback');
+});
 
 Route::middleware('auth')->group(function () {
     // La pantalla "aceptar y continuar" que muestra AceptoTerminos.

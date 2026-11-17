@@ -154,6 +154,15 @@ const conSesion = computed(() => Boolean(page.props.auth.user));
             </section>
 
             <section class="flex flex-col gap-2">
+                <h2 class="font-semibold">Si entrás con Google</h2>
+                <p class="text-sm text-pretty">
+                    Google pone sus propias cookies, en su sitio, mientras
+                    iniciás sesión con tu cuenta de Google. Si entrás con email
+                    y contraseña no interviene.
+                </p>
+            </section>
+
+            <section class="flex flex-col gap-2">
                 <h2 class="font-semibold">Cómo borrarlo</h2>
                 <p class="text-sm text-pretty">
                     Al salir de tu cuenta se cierra la sesión. El resto lo podés

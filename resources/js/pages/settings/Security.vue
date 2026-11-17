@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -19,6 +20,10 @@ type Props = {
     ManageTwoFactorProps;
 
 const props = defineProps<Props>();
+
+// Quien entró con Google no tiene contraseña: se le ofrece definir una, sin
+// pedirle la actual.
+const tieneContrasena = computed(() => usePage().props.auth.tieneContrasena);
 
 defineOptions({
     layout: {
@@ -40,8 +45,16 @@ defineOptions({
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Cambiar la contraseña"
-            description="Usá una contraseña larga y difícil de adivinar"
+            :title="
+                tieneContrasena
+                    ? 'Cambiar la contraseña'
+                    : 'Definir una contraseña'
+            "
+            :description="
+                tieneContrasena
+                    ? 'Usá una contraseña larga y difícil de adivinar'
+                    : 'Entrás con Google. Si querés, definí una contraseña para entrar también con tu email.'
+            "
         />
 
         <Form
@@ -58,7 +71,7 @@ defineOptions({
             class="space-y-6"
             v-slot="{ errors, processing }"
         >
-            <div class="grid gap-2">
+            <div v-if="tieneContrasena" class="grid gap-2">
                 <Label for="current_password">Contraseña actual</Label>
                 <PasswordInput
                     id="current_password"
@@ -71,13 +84,17 @@ defineOptions({
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">Contraseña nueva</Label>
+                <Label for="password">{{
+                    tieneContrasena ? 'Contraseña nueva' : 'Contraseña'
+                }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="Contraseña nueva"
+                    :placeholder="
+                        tieneContrasena ? 'Contraseña nueva' : 'Contraseña'
+                    "
                     :passwordrules="props.passwordRules"
                 />
                 <InputError :message="errors.password" />
@@ -101,7 +118,7 @@ defineOptions({
                     :disabled="processing"
                     data-test="update-password-button"
                 >
-                    Save
+                    Guardar
                 </Button>
             </div>
         </Form>

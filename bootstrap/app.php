@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AceptoTerminos;
+use App\Http\Middleware\ConfirmarClaveSiLaTiene;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -16,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Las rutas de 2FA y llaves de acceso de Fortify usan este alias: una
+        // cuenta de Google, sin contraseña, no podría confirmarla nunca.
+        $middleware->alias(['password.confirm' => ConfirmarClaveSiLaTiene::class]);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [

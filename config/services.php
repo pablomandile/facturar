@@ -14,6 +14,17 @@ return [
     |
     */
 
+    /*
+     * Ingreso con Google (Socialite). Sin las dos variables la opción no existe:
+     * no hay botón y las rutas dan 404. El redirect tiene que coincidir carácter
+     * por carácter con el cargado en Google Cloud, o da redirect_uri_mismatch.
+     */
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL').'/auth/google/callback'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

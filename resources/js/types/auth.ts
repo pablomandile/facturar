@@ -12,6 +12,8 @@ export type User = {
 
 export type Auth = {
     user: User;
+    /** Falso en las cuentas que entran con Google sin haber definido una. */
+    tieneContrasena: boolean;
 };
 
 export type Passkey = {

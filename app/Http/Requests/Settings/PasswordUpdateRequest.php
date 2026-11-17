@@ -17,9 +17,14 @@ class PasswordUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'current_password' => $this->currentPasswordRules(),
-            'password' => $this->passwordRules(),
-        ];
+        $reglas = ['password' => $this->passwordRules()];
+
+        // Quien entró con Google no tiene contraseña actual: exigirla le
+        // impediría definirse una nunca.
+        if (filled($this->user()?->getAuthPassword())) {
+            $reglas['current_password'] = $this->currentPasswordRules();
+        }
+
+        return $reglas;
     }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
-import { useTemplateRef } from 'vue';
+import { Form, usePage } from '@inertiajs/vue3';
+import { computed, useTemplateRef } from 'vue';
 import ExportacionController from '@/actions/App/Http/Controllers/ExportacionController';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/Heading.vue';
@@ -20,6 +20,9 @@ import {
 import { Label } from '@/components/ui/label';
 
 const passwordInput = useTemplateRef('passwordInput');
+
+// Una cuenta de Google sin contraseña confirma solo con el botón.
+const tieneContrasena = computed(() => usePage().props.auth.tieneContrasena);
 </script>
 
 <template>
@@ -69,12 +72,15 @@ const passwordInput = useTemplateRef('passwordInput');
                             >
                             <DialogDescription>
                                 Cuando elimines la cuenta, todos sus datos se
-                                borran para siempre. Ingresá tu contraseña para
-                                confirmar.
+                                borran para siempre.
+                                <template v-if="tieneContrasena"
+                                    >Ingresá tu contraseña para
+                                    confirmar.</template
+                                >
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div class="grid gap-2">
+                        <div v-if="tieneContrasena" class="grid gap-2">
                             <Label for="password" class="sr-only"
                                 >Contraseña</Label
                             >
@@ -98,7 +104,7 @@ const passwordInput = useTemplateRef('passwordInput');
                                         }
                                     "
                                 >
-                                    Cancel
+                                    Cancelar
                                 </Button>
                             </DialogClose>
 

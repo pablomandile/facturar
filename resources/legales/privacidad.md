@@ -11,7 +11,9 @@ El responsable de los datos es **{responsable}**. Contacto: **{contacto}**.
 **De tu cuenta**
 
 - Nombre y email.
-- Contraseña, guardada con un hash: nadie puede leerla, ni siquiera nosotros.
+- Contraseña, guardada con un hash: nadie puede leerla, ni siquiera nosotros. Si
+  entrás con Google no hace falta contraseña: guardamos un identificador de tu cuenta
+  de Google.
 - Si la activás, la información de la verificación en dos pasos y de tus llaves de
   acceso.
 - La fecha en que aceptaste estos textos y la versión que aceptaste.
@@ -73,9 +75,12 @@ El responsable de los datos es **{responsable}**. Contacto: **{contacto}**.
   propias normas.
 - **Hostinger**, la empresa que aloja la app y su base de datos, y que manda los
   mails. Procesa los datos solo para prestar ese servicio.
+- **Google**, solo si elegís entrar con tu cuenta de Google. En ese caso Google nos
+  pasa tu nombre, tu email y un identificador de tu cuenta, y sabe que entraste a
+  FacturAR. No le mandamos nada de tus facturas ni de tus clientes.
 
 Nadie más. La app no usa herramientas de estadísticas, de publicidad ni de terceros
-en tu navegador: hasta las tipografías se sirven desde nuestro propio servidor.
+en tu navegador (fuera de la pantalla de Google, si elegís entrar con Google): hasta las tipografías se sirven desde nuestro propio servidor.
 
 ## Cuánto tiempo los guardamos
 

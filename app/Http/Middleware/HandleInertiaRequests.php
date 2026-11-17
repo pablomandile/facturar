@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\IngresoConGoogle;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -73,7 +74,13 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                // Falso en las cuentas que entran con Google sin haber definido
+                // una: la pantalla de seguridad y la de eliminar la cuenta no
+                // le piden la que no tiene.
+                'tieneContrasena' => filled($request->user()?->getAuthPassword()),
             ],
+            // Sin credenciales en el .env el botón de Google no se dibuja.
+            'googleHabilitado' => IngresoConGoogle::configurado(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
