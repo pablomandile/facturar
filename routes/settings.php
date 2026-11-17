@@ -2,7 +2,14 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\TamanioTextoController;
 use Illuminate\Support\Facades\Route;
+
+// Sin auth: quien no llega a leer el login es quien más necesita agrandar la
+// letra. Sin sesión queda solo en la cookie.
+Route::put('tamanio-texto', [TamanioTextoController::class, 'update'])
+    ->middleware('throttle:30,1')
+    ->name('tamanio-texto.update');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile');

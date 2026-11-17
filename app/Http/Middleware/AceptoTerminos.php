@@ -38,6 +38,8 @@ class AceptoTerminos
         'profile.destroy',
         'exportacion.datos',
         'verification.*',
+        // Agrandar la letra para poder leer los términos que hay que aceptar.
+        'tamanio-texto.update',
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TamanioTexto;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -29,6 +30,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $terminos_version
+ * @property TamanioTexto $tamanio_texto
  * @property Carbon|null $terminos_aceptados_en
  * @property-read Emisor|null $emisor
  */
@@ -38,6 +40,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    /**
+     * El mismo default que la columna: sin esto, un usuario recién creado tiene
+     * `tamanio_texto` en null hasta releerlo, y el middleware espera un enum.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'tamanio_texto' => TamanioTexto::PORDEFECTO,
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -51,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'terminos_aceptados_en' => 'datetime',
+            'tamanio_texto' => TamanioTexto::class,
         ];
     }
 

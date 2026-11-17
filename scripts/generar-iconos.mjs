@@ -38,7 +38,7 @@ const CHROME =
     process.env.CHROME ??
     'C:/Program Files/Google/Chrome/Application/chrome.exe';
 
-/** @type {{ origen: string, destino: string, lado: number }[]} */
+/** @type {{ origen: string, destino: string, lado: number, formato?: 'png' | 'webp' }[]} */
 const SALIDAS = [
     { origen: 'icono.svg', destino: 'public/icons/favicon-32.png', lado: 32 },
     { origen: 'icono.svg', destino: 'public/icons/favicon-48.png', lado: 48 },
@@ -59,6 +59,16 @@ const SALIDAS = [
         destino: 'public/apple-touch-icon.png',
         lado: 180,
     },
+    /*
+     * El logo para documentación (README, presentaciones): WebP con fondo
+     * transparente. No lo usa la app.
+     */
+    {
+        origen: 'icono.svg',
+        destino: 'public/img/facturar-logo.webp',
+        lado: 512,
+        formato: 'webp',
+    },
 ];
 
 const navegador = await puppeteer.launch({
@@ -70,8 +80,9 @@ const navegador = await puppeteer.launch({
 const pagina = await navegador.newPage();
 
 await mkdir(resolve(RAIZ, 'public/icons'), { recursive: true });
+await mkdir(resolve(RAIZ, 'public/img'), { recursive: true });
 
-for (const { origen, destino, lado } of SALIDAS) {
+for (const { origen, destino, lado, formato = 'png' } of SALIDAS) {
     const svg = await readFile(
         resolve(RAIZ, 'resources/marca', origen),
         'utf8',
@@ -101,13 +112,14 @@ for (const { origen, destino, lado } of SALIDAS) {
      * que no tienen zona transparente, que es justo lo que iOS necesita (la
      * transparencia la pinta de negro).
      */
-    const png = await pagina.screenshot({
-        type: 'png',
+    const imagen = await pagina.screenshot({
+        type: formato,
+        ...(formato === 'webp' ? { quality: 95 } : {}),
         omitBackground: true,
         clip: { x: 0, y: 0, width: lado, height: lado },
     });
 
-    await writeFile(resolve(RAIZ, destino), png);
+    await writeFile(resolve(RAIZ, destino), imagen);
     console.log(`  ${destino.padEnd(38)} ${lado}x${lado}`);
 }
 

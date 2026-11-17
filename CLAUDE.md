@@ -224,6 +224,22 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - **Todo aviso al usuario va en un toast** de vue-sonner, disparado desde el layout con un
   `watch` sobre el flash. Nada de carteles dentro de la página.
 - `npm run build` después de tocar un `.vue`, antes de verificar en el navegador.
+- **Marca**: la fuente es `resources/marca/*.svg`; `npm run generar:iconos` saca de ahí los PNG
+  de la PWA y `public/img/facturar-logo.webp` (el logo para documentar). Los PNG no se
+  editan a mano.
+
+### Tamaño de letra
+
+- Configuración → Apariencia, primero: Pequeño 87,5 % · **Normal 100 %** (default) · Grande
+  112,5 % (`App\Enums\TamanioTexto`). En `%` sobre `<html>`, nunca en px: así se multiplica
+  con el tamaño que la persona puso en su navegador. `TamanioTextoTest` ata el CSS al enum.
+- Lo escribe el servidor (`data-texto` en `app.blade.php`, vía `HandleTamanioTexto`): sin
+  script inline ni parpadeo. Manda la cuenta, después la cookie `tamanio_texto` (sin cifrar,
+  declarada en `/cookies`), después el default.
+- `PUT /tamanio-texto` no pide sesión y está en `AceptoTerminos::EXENTAS`: quien no puede
+  leer los términos tiene que poder agrandar la letra.
+- Los breakpoints (`md:`) no escalan con la letra: revisar desbordes como matriz ancho ×
+  tamaño, cambiando el tamaño **por el endpoint** (con sesión, la cookie sola no cambia nada).
 
 ## Comandos
 

@@ -44,13 +44,18 @@ const GRUPOS: Grupo[] = [
             },
             {
                 nombre: 'remember_web_…',
-                para: 'Solo si tildás «Recordarme» al ingresar: no tener que volver a escribir la contraseña.',
+                para: 'Solo si tildás «Recordarme» o entrás con Google: no tener que volver a ingresar cada vez.',
                 dura: 'Hasta que salgas de la cuenta',
             },
             {
                 nombre: 'appearance',
                 para: 'Si elegiste el modo claro, el oscuro o el del sistema.',
                 dura: 'Un año',
+            },
+            {
+                nombre: 'tamanio_texto',
+                para: 'El tamaño de letra que elegiste. Con la sesión abierta manda el de tu cuenta.',
+                dura: '400 días',
             },
             {
                 nombre: 'sidebar_state',

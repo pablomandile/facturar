@@ -132,6 +132,24 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
+/*
+ * Tamaño de letra elegido en Configuración → Apariencia (TamanioTexto).
+ * En % y no en px, para multiplicarse con el que la persona puso en su
+ * navegador. El default va también en :root para las vistas sin el atributo.
+ */
+:root {
+    font-size: 100%;
+}
+html[data-texto='pequeno'] {
+    font-size: 87.5%;
+}
+html[data-texto='normal'] {
+    font-size: 100%;
+}
+html[data-texto='grande'] {
+    font-size: 112.5%;
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;

@@ -4,6 +4,7 @@ use App\Http\Middleware\AceptoTerminos;
 use App\Http\Middleware\ConfirmarClaveSiLaTiene;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\HandleTamanioTexto;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,10 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // cuenta de Google, sin contraseña, no podría confirmarla nunca.
         $middleware->alias(['password.confirm' => ConfirmarClaveSiLaTiene::class]);
 
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'tamanio_texto']);
 
         $middleware->web(append: [
             HandleAppearance::class,
+            // Antes que Inertia: comparte el tamaño con la vista y las props.
+            HandleTamanioTexto::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             // Al final: necesita la sesión y el usuario ya resueltos.

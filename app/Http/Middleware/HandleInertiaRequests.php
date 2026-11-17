@@ -2,9 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\TamanioTexto;
 use App\Services\IngresoConGoogle;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
 use Inertia\Support\Header;
 use Symfony\Component\HttpFoundation\Response;
@@ -81,6 +83,9 @@ class HandleInertiaRequests extends Middleware
             ],
             // Sin credenciales en el .env el botón de Google no se dibuja.
             'googleHabilitado' => IngresoConGoogle::configurado(),
+            // Lo resolvió HandleTamanioTexto (cuenta → cookie → default).
+            'tamanioTexto' => fn (): string => View::shared('tamanioTexto', TamanioTexto::porDefecto())->value,
+            'tamaniosTexto' => fn (): array => TamanioTexto::opciones(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
