@@ -146,6 +146,21 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   a la última autorizada del punto de venta. Se valida en el FormRequest y otra vez al emitir,
   porque un borrador puede quedar viejo.
 
+### Descripción habitual y duplicar
+
+- Cada cliente puede tener una **descripción habitual** (`clientes.plantilla_descripcion`) con
+  marcadores: `{desde}`, `{hasta}`, `{mes}`, `{anio}`, `{importe}`, `{importe_en_letras}`.
+  La completa **el front** (`lib/plantillaDescripcion.ts`) en el primer ítem y la rehace
+  mientras cambian el período o el total; al editarla a mano deja de pisarla. Lo que se
+  guarda es el texto final: ARCA no recibe los ítems, solo el PDF.
+- `lib/importeEnLetras.ts`: centavos → "Dos millones … pesos con cero centavos". Apócope
+  ("veintiún mil", "un peso") y "de" en millones exactos; lo cubren los tests de Vitest.
+- La descripción de un ítem es `text`, hasta `ComprobanteItem::DESCRIPCION_MAXIMA` (1000),
+  con `\n` (el request normaliza el `\r\n` del textarea). El PDF usa `nl2br(e(...))`.
+- **Duplicar** (`GET comprobantes/{id}/duplicar`) abre el formulario precargado y **no
+  guarda nada**. Corre el período tantos meses como pasaron desde la emisión original (un
+  mes completo sigue siendo un mes completo) y conserva los días de plazo del vencimiento.
+
 ### PDF y QR
 
 - El PDF se genera al vuelo y solo para facturas autorizadas: todo lo que lleva está en la base
@@ -248,6 +263,7 @@ composer dev              # servidor, vite, cola y logs
 composer ci:check         # TODO lo que corre el CI: formato, lint, tipos, PHPStan y tests
 composer lint             # pint
 npm run check:fix         # formato y lint del front
+npm run test:front        # Vitest (lib/*.test.ts); importa de 'vite-plus/test', no de 'vitest'
 php artisan test          # Pest
 ```
 

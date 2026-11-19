@@ -57,6 +57,7 @@ class ClienteGuardarRequest extends FormRequest
             'condicion_iva' => ['required', Rule::enum(CondicionIvaReceptor::class)],
             'domicilio' => ['nullable', 'string', 'max:200'],
             'email' => ['nullable', 'email', 'max:255'],
+            'plantilla_descripcion' => ['nullable', 'string', 'max:'.Cliente::PLANTILLA_MAXIMA],
         ];
     }
 

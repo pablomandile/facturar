@@ -25,6 +25,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['orden', 'descripcion', 'cantidad', 'unidad', 'precio_unitario', 'importe'])]
 class ComprobanteItem extends Model
 {
+    /** Caracteres de una descripción: alcanza para varias líneas. */
+    public const int DESCRIPCION_MAXIMA = 1000;
+
     public $timestamps = false;
 
     protected $table = 'comprobante_items';

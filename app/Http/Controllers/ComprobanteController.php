@@ -77,6 +77,8 @@ class ComprobanteController extends Controller
         return Inertia::render('comprobantes/Formulario', [
             ...$this->datosDelFormulario($this->emisorDe($peticion)),
             'comprobante' => null,
+            'base' => null,
+            'duplicadoDe' => null,
         ]);
     }
 
@@ -115,24 +117,115 @@ class ComprobanteController extends Controller
 
         return Inertia::render('comprobantes/Formulario', [
             ...$this->datosDelFormulario($this->emisorDe($peticion)),
-            'comprobante' => [
-                'id' => $comprobante->id,
-                'punto_de_venta_id' => $comprobante->punto_de_venta_id,
-                'cliente_id' => $comprobante->cliente_id,
-                'concepto' => $comprobante->concepto->value,
-                'fecha_emision' => $comprobante->fecha_emision->toDateString(),
-                'fecha_servicio_desde' => $comprobante->fecha_servicio_desde?->toDateString(),
-                'fecha_servicio_hasta' => $comprobante->fecha_servicio_hasta?->toDateString(),
-                'fecha_vto_pago' => $comprobante->fecha_vto_pago?->toDateString(),
-                'observaciones' => $comprobante->observaciones,
-                'items' => $comprobante->items->map(fn (ComprobanteItem $item): array => [
-                    'descripcion' => $item->descripcion,
-                    'cantidad' => rtrim(rtrim($item->cantidad, '0'), '.'),
-                    'unidad' => $item->unidad,
-                    'precio_unitario' => Dinero::aDecimal($item->precio_unitario),
-                ])->all(),
-            ],
+            'comprobante' => ['id' => $comprobante->id, ...$this->editable($comprobante)],
+            'base' => null,
+            'duplicadoDe' => null,
         ]);
+    }
+
+    /**
+     * Una factura nueva armada a partir de otra, sin guardarla: abre el
+     * formulario con el mismo cliente, los mismos ítems y el período corrido
+     * al mes que toca. Nada queda en la base hasta que se toca Guardar o Emitir.
+     *
+     * Sirve desde cualquier estado, también desde una autorizada: es el caso
+     * típico, la factura del mes pasado.
+     */
+    public function duplicar(Request $peticion, Comprobante $comprobante): Response
+    {
+        $this->authorize('view', $comprobante);
+        $comprobante->load('items');
+
+        $emisor = $this->emisorDe($peticion);
+        $datos = $this->datosDelFormulario($emisor);
+        $hoy = (new RelojFiscal)->hoy();
+        $base = $this->editable($comprobante);
+
+        // El cliente, solo si sigue existiendo: si lo borraron, que se elija.
+        if ($base['cliente_id'] !== null && ! Cliente::query()->whereKey($base['cliente_id'])->exists()) {
+            $base['cliente_id'] = null;
+        }
+
+        // Puede venir de otro ambiente, o de un punto de venta dado de baja.
+        $puntos = array_column($datos['puntosDeVenta'], 'id');
+        if (! in_array($base['punto_de_venta_id'], $puntos, true)) {
+            $base['punto_de_venta_id'] = $puntos[0] ?? null;
+        }
+
+        /*
+         * Todo se corre lo mismo que pasó desde la factura original: la de
+         * octubre emitida en noviembre, duplicada en diciembre, factura
+         * noviembre. El vencimiento conserva los días que daba de plazo.
+         */
+        $meses = ($hoy->year * 12 + $hoy->month) - ($comprobante->fecha_emision->year * 12 + $comprobante->fecha_emision->month);
+        $base['fecha_emision'] = $hoy->toDateString();
+        [$base['fecha_servicio_desde'], $base['fecha_servicio_hasta']] = $this->periodoCorrido($comprobante, $meses);
+        $base['fecha_vto_pago'] = $comprobante->fecha_vto_pago === null
+            ? null
+            : $hoy->addDays((int) $comprobante->fecha_emision->diffInDays($comprobante->fecha_vto_pago, false))->toDateString();
+
+        return Inertia::render('comprobantes/Formulario', [
+            ...$datos,
+            'comprobante' => null,
+            'base' => $base,
+            // Completa la frase "Copia de …" del formulario.
+            'duplicadoDe' => $comprobante->numero !== null ? "la factura {$comprobante->numeroCompleto()}" : 'un borrador',
+        ]);
+    }
+
+    /**
+     * Un período de mes completo sigue siendo de mes completo (octubre →
+     * noviembre, aunque tengan distinta cantidad de días); cualquier otro se
+     * corre fecha por fecha.
+     *
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function periodoCorrido(Comprobante $comprobante, int $meses): array
+    {
+        $desde = $comprobante->fecha_servicio_desde;
+        $hasta = $comprobante->fecha_servicio_hasta;
+
+        if ($desde === null || $hasta === null) {
+            return [null, null];
+        }
+
+        $mesCompleto = $desde->day === 1 && $hasta->isSameDay($desde->endOfMonth());
+
+        if ($mesCompleto) {
+            $mes = $desde->addMonthsNoOverflow($meses);
+
+            return [$mes->startOfMonth()->toDateString(), $mes->endOfMonth()->toDateString()];
+        }
+
+        return [
+            $desde->addMonthsNoOverflow($meses)->toDateString(),
+            $hasta->addMonthsNoOverflow($meses)->toDateString(),
+        ];
+    }
+
+    /**
+     * Los datos de una factura tal como los carga el formulario.
+     *
+     * @return array{punto_de_venta_id: int|null, cliente_id: int|null, concepto: int, fecha_emision: string, fecha_servicio_desde: string|null, fecha_servicio_hasta: string|null, fecha_vto_pago: string|null, observaciones: string|null, items: list<array{descripcion: string, cantidad: string, unidad: string|null, precio_unitario: string}>}
+     */
+    private function editable(Comprobante $comprobante): array
+    {
+        return [
+            'punto_de_venta_id' => $comprobante->punto_de_venta_id,
+            'cliente_id' => $comprobante->cliente_id,
+            'concepto' => $comprobante->concepto->value,
+            'fecha_emision' => $comprobante->fecha_emision->toDateString(),
+            'fecha_servicio_desde' => $comprobante->fecha_servicio_desde?->toDateString(),
+            'fecha_servicio_hasta' => $comprobante->fecha_servicio_hasta?->toDateString(),
+            'fecha_vto_pago' => $comprobante->fecha_vto_pago?->toDateString(),
+            'observaciones' => $comprobante->observaciones,
+            'items' => array_values($comprobante->items->map(fn (ComprobanteItem $item): array => [
+                'descripcion' => $item->descripcion,
+                'cantidad' => rtrim(rtrim($item->cantidad, '0'), '.'),
+                'unidad' => $item->unidad,
+                'precio_unitario' => Dinero::aDecimal($item->precio_unitario),
+            ])->all()),
+        ];
     }
 
     public function update(ComprobanteGuardarRequest $peticion, Comprobante $comprobante): RedirectResponse
@@ -205,7 +298,12 @@ class ComprobanteController extends Controller
                 ->orderBy('nombre')
                 ->limit(1000)
                 ->get()
-                ->map(fn (Cliente $c): array => ['id' => $c->id, 'etiqueta' => "{$c->nombre} · {$c->documentoFormateado()}"])
+                ->map(fn (Cliente $c): array => [
+                    'id' => $c->id,
+                    'etiqueta' => "{$c->nombre} · {$c->documentoFormateado()}",
+                    // El formulario la completa con el período y el total.
+                    'plantilla' => $c->plantilla_descripcion,
+                ])
                 ->all(),
             'conceptos' => array_map(
                 fn (Concepto $c): array => ['value' => $c->value, 'etiqueta' => $c->etiqueta(), 'con_servicios' => $c->exigeFechasDeServicio()],

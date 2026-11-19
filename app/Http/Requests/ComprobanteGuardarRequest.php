@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Arca\Concepto;
 use App\Models\Comprobante;
+use App\Models\ComprobanteItem;
 use App\Models\User;
 use App\Services\Arca\RelojFiscal;
 use App\Support\Dinero;
@@ -68,7 +69,7 @@ class ComprobanteGuardarRequest extends FormRequest
             'fecha_vto_pago' => [Rule::requiredIf($servicios), 'nullable', 'date_format:Y-m-d', 'after_or_equal:fecha_emision'],
             'observaciones' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
-            'items.*.descripcion' => ['required', 'string', 'max:250'],
+            'items.*.descripcion' => ['required', 'string', 'max:'.ComprobanteItem::DESCRIPCION_MAXIMA],
             'items.*.cantidad' => ['required', 'numeric', 'gt:0', 'max:99999999', 'decimal:0,4'],
             'items.*.unidad' => ['nullable', 'string', 'max:20'],
             'items.*.precio_unitario' => ['required', 'string', 'max:20'],
@@ -149,7 +150,8 @@ class ComprobanteGuardarRequest extends FormRequest
             'fecha_vto_pago' => $texto('fecha_vto_pago'),
             'observaciones' => $texto('observaciones'),
             'items' => array_values(array_map(fn (array $item): array => [
-                'descripcion' => (string) $item['descripcion'],
+                // El textarea manda \r\n: se guarda con \n, como lo escribe el PDF.
+                'descripcion' => trim(str_replace("\r\n", "\n", (string) $item['descripcion'])),
                 'cantidad' => (string) $item['cantidad'],
                 'unidad' => isset($item['unidad']) ? (string) $item['unidad'] : null,
                 'precio_unitario' => (string) $item['precio_unitario'],

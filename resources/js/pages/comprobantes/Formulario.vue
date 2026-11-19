@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { Plus, Trash2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { Plus, RefreshCw, Trash2 } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import InputError from '@/components/InputError.vue';
@@ -10,10 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatearCentavos, importeDeItem } from '@/lib/moneda';
+import { completarPlantilla } from '@/lib/plantillaDescripcion';
 import type {
+    ComprobanteBase,
     ComprobanteEditable,
     ItemDelFormulario,
     Opcion,
+    OpcionCliente,
     OpcionConcepto,
 } from '@/types/comprobantes';
 
@@ -28,8 +31,12 @@ defineOptions({
 
 const props = defineProps<{
     comprobante: ComprobanteEditable | null;
+    /** Una factura duplicada: precarga el formulario, pero se guarda como nueva. */
+    base: ComprobanteBase | null;
+    /** De qué sale la copia ("la factura 00001-…" o "un borrador"). */
+    duplicadoDe: string | null;
     puntosDeVenta: Opcion[];
-    clientes: Opcion[];
+    clientes: OpcionCliente[];
     conceptos: OpcionConcepto[];
     hoy: string;
     inicioDeMes: string;
@@ -37,6 +44,8 @@ const props = defineProps<{
     topeConsumidorFinal: number;
     ambiente: string;
 }>();
+
+const inicial = props.comprobante ?? props.base;
 
 const itemVacio = (): ItemDelFormulario => ({
     descripcion: '',
@@ -46,12 +55,14 @@ const itemVacio = (): ItemDelFormulario => ({
 });
 
 const items = ref<ItemDelFormulario[]>(
-    props.comprobante?.items.length
-        ? props.comprobante.items.map((item) => ({ ...item }))
+    inicial?.items.length
+        ? inicial.items.map((item) => ({ ...item }))
         : [itemVacio()],
 );
-const concepto = ref(props.comprobante?.concepto ?? 2);
-const clienteId = ref<string>(String(props.comprobante?.cliente_id ?? ''));
+const concepto = ref(inicial?.concepto ?? 2);
+const clienteId = ref<string>(String(inicial?.cliente_id ?? ''));
+const desde = ref(inicial?.fecha_servicio_desde ?? props.inicioDeMes);
+const hasta = ref(inicial?.fecha_servicio_hasta ?? props.finDeMes);
 // Qué botón se tocó: el campo oculto viaja con el formulario.
 const emitir = ref(false);
 
@@ -70,6 +81,74 @@ const total = computed(() =>
 const consumidorFinalSobreElTope = computed(
     () => clienteId.value === '' && total.value >= props.topeConsumidorFinal,
 );
+
+/*
+ * La descripción habitual del cliente (ver lib/plantillaDescripcion.ts) va en
+ * el primer ítem y se rehace sola mientras cambian el período o el total. En
+ * cuanto la persona la edita a mano, deja de pisarla; el botón "Usar la
+ * descripción habitual" la vuelve a encender.
+ *
+ * Al editar un borrador arranca apagada: lo guardado se respeta.
+ */
+const plantilla = computed(
+    () =>
+        props.clientes.find((c) => String(c.id) === clienteId.value)
+            ?.plantilla ?? null,
+);
+const descripcionGenerada = computed(() =>
+    plantilla.value
+        ? completarPlantilla(plantilla.value, {
+              desde: conServicios.value ? desde.value : '',
+              hasta: conServicios.value ? hasta.value : '',
+              totalCentavos: total.value,
+          })
+        : null,
+);
+const descripcionAutomatica = ref(props.comprobante === null);
+
+watch(
+    descripcionGenerada,
+    (texto) => {
+        if (descripcionAutomatica.value && texto !== null && items.value[0]) {
+            items.value[0].descripcion = texto;
+        }
+    },
+    { immediate: true },
+);
+
+watch(plantilla, (nueva, anterior) => {
+    const primero = items.value[0];
+
+    if (!primero) {
+        return;
+    }
+
+    // Un cliente con descripción habitual y el campo vacío: se completa.
+    if (nueva !== null && primero.descripcion.trim() === '') {
+        usarDescripcionHabitual();
+
+        return;
+    }
+
+    // Al pasar a un cliente sin descripción habitual, no queda la del anterior.
+    if (descripcionAutomatica.value && nueva === null && anterior !== null) {
+        primero.descripcion = '';
+    }
+});
+
+function editarDescripcion(i: number): void {
+    if (i === 0 && items.value[0].descripcion !== descripcionGenerada.value) {
+        descripcionAutomatica.value = false;
+    }
+}
+
+function usarDescripcionHabitual(): void {
+    descripcionAutomatica.value = true;
+
+    if (descripcionGenerada.value !== null) {
+        items.value[0].descripcion = descripcionGenerada.value;
+    }
+}
 
 const formulario = computed(() =>
     props.comprobante
@@ -90,6 +169,14 @@ const claseCampo =
                 {{ comprobante ? 'Editar factura C' : 'Nueva factura C' }}
             </h1>
             <p class="text-sm text-muted-foreground">{{ ambiente }}</p>
+            <p
+                v-if="duplicadoDe"
+                class="text-sm text-muted-foreground"
+                data-test="aviso-duplicado"
+            >
+                Copia de {{ duplicadoDe }}, con el período corrido al mes que
+                corresponde. Revisá el importe antes de emitir.
+            </p>
         </header>
 
         <p v-if="!puntosDeVenta.length" class="rounded-lg border p-4 text-sm">
@@ -126,7 +213,7 @@ const claseCampo =
                                 :key="punto.id"
                                 :value="punto.id"
                                 :selected="
-                                    punto.id === comprobante?.punto_de_venta_id
+                                    punto.id === inicial?.punto_de_venta_id
                                 "
                             >
                                 {{ punto.etiqueta }}
@@ -141,7 +228,7 @@ const claseCampo =
                             id="fecha_emision"
                             name="fecha_emision"
                             type="date"
-                            :default-value="comprobante?.fecha_emision ?? hoy"
+                            :default-value="inicial?.fecha_emision ?? hoy"
                             required
                         />
                         <InputError :message="errors.fecha_emision" />
@@ -193,12 +280,9 @@ const claseCampo =
                             >
                             <Input
                                 id="fecha_servicio_desde"
+                                v-model="desde"
                                 name="fecha_servicio_desde"
                                 type="date"
-                                :default-value="
-                                    comprobante?.fecha_servicio_desde ??
-                                    inicioDeMes
-                                "
                             />
                             <InputError
                                 :message="errors.fecha_servicio_desde"
@@ -210,12 +294,9 @@ const claseCampo =
                             >
                             <Input
                                 id="fecha_servicio_hasta"
+                                v-model="hasta"
                                 name="fecha_servicio_hasta"
                                 type="date"
-                                :default-value="
-                                    comprobante?.fecha_servicio_hasta ??
-                                    finDeMes
-                                "
                             />
                             <InputError
                                 :message="errors.fecha_servicio_hasta"
@@ -229,9 +310,7 @@ const claseCampo =
                                 id="fecha_vto_pago"
                                 name="fecha_vto_pago"
                                 type="date"
-                                :default-value="
-                                    comprobante?.fecha_vto_pago ?? hoy
-                                "
+                                :default-value="inicial?.fecha_vto_pago ?? hoy"
                             />
                             <InputError :message="errors.fecha_vto_pago" />
                         </div>
@@ -247,16 +326,51 @@ const claseCampo =
                     <fieldset
                         v-for="(item, i) in items"
                         :key="i"
-                        class="grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_6rem_8rem_7.5rem]"
+                        class="grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-[6rem_8rem_1fr]"
                     >
                         <legend class="sr-only">Ítem {{ i + 1 }}</legend>
-                        <div class="col-span-2 grid gap-1 sm:col-span-1">
+                        <div class="col-span-2 grid gap-1 sm:col-span-3">
                             <Label :for="`descripcion-${i}`">Descripción</Label>
-                            <Input
+                            <!--
+                                Tres líneas como mínimo y crece con el texto
+                                (field-sizing). El PDF respeta los saltos.
+                            -->
+                            <textarea
                                 :id="`descripcion-${i}`"
                                 v-model="item.descripcion"
                                 :name="`items[${i}][descripcion]`"
+                                rows="3"
+                                maxlength="1000"
+                                :class="[
+                                    claseCampo,
+                                    'field-sizing-content h-auto min-h-[calc(3lh+1rem)] py-2 leading-normal',
+                                ]"
+                                @input="editarDescripcion(i)"
                             />
+                            <div
+                                v-if="i === 0 && plantilla"
+                                class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground"
+                            >
+                                <span v-if="descripcionAutomatica"
+                                    >Se completa con la descripción habitual del
+                                    cliente: sigue al período y al total.</span
+                                >
+                                <span v-else
+                                    >Editada a mano: el período y el total ya no
+                                    la cambian.</span
+                                >
+                                <Button
+                                    v-if="!descripcionAutomatica"
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    data-test="usar-descripcion-habitual"
+                                    @click="usarDescripcionHabitual"
+                                >
+                                    <RefreshCw aria-hidden="true" /> Usar la
+                                    descripción habitual
+                                </Button>
+                            </div>
                             <InputError
                                 :message="errors[`items.${i}.descripcion`]"
                             />
@@ -287,7 +401,7 @@ const claseCampo =
                             />
                         </div>
                         <div
-                            class="col-span-2 flex items-end justify-between gap-2 sm:col-span-1 sm:flex-col sm:items-end"
+                            class="col-span-2 flex items-end justify-between gap-2 sm:col-span-1 sm:justify-end"
                         >
                             <span class="text-sm tabular-nums"
                                 >$
@@ -342,7 +456,7 @@ const claseCampo =
                     rows="2"
                     maxlength="500"
                     :class="[claseCampo, 'h-auto py-2']"
-                    :value="comprobante?.observaciones ?? ''"
+                    :value="inicial?.observaciones ?? ''"
                 />
                 <InputError :message="errors.observaciones" />
             </div>

@@ -23,9 +23,9 @@ export type ItemDelFormulario = {
     precio_unitario: string;
 };
 
-export type ComprobanteEditable = {
-    id: number;
-    punto_de_venta_id: number;
+/** Lo que precarga el formulario: una factura guardada o una duplicada. */
+export type ComprobanteBase = {
+    punto_de_venta_id: number | null;
     cliente_id: number | null;
     concepto: number;
     fecha_emision: string;
@@ -34,6 +34,10 @@ export type ComprobanteEditable = {
     fecha_vto_pago: string | null;
     observaciones: string | null;
     items: ItemDelFormulario[];
+};
+
+export type ComprobanteEditable = ComprobanteBase & {
+    id: number;
 };
 
 export type ObservacionArca = { codigo: number; mensaje: string };
@@ -77,6 +81,9 @@ export type ComprobanteDetalle = {
 };
 
 export type Opcion = { id: number; etiqueta: string };
+
+/** Un cliente en el formulario de la factura, con su descripción habitual. */
+export type OpcionCliente = Opcion & { plantilla: string | null };
 
 export type OpcionConcepto = {
     value: number;

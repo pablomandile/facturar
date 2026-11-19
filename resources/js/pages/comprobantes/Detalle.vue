@@ -135,9 +135,10 @@ function borrar(): void {
                         :key="i"
                         class="flex flex-wrap justify-between gap-x-4 py-2"
                     >
-                        <span class="min-w-0 flex-1">{{
-                            item.descripcion
-                        }}</span>
+                        <span
+                            class="min-w-0 flex-1 wrap-break-word whitespace-pre-line"
+                            >{{ item.descripcion }}</span
+                        >
                         <span class="text-muted-foreground tabular-nums"
                             >{{ item.cantidad }} × $
                             {{ item.precio_unitario }}</span
@@ -181,6 +182,14 @@ function borrar(): void {
             <Button v-if="puede.editar" variant="outline" as-child>
                 <Link :href="ComprobanteController.edit(comprobante.id)"
                     >Editar</Link
+                >
+            </Button>
+            <!-- Una factura nueva a partir de esta: la del mes que viene. -->
+            <Button variant="outline" as-child>
+                <Link
+                    :href="ComprobanteController.duplicar(comprobante.id)"
+                    data-test="duplicar"
+                    >Duplicar</Link
                 >
             </Button>
             <Button v-if="puede.borrar" variant="ghost" @click="borrar">

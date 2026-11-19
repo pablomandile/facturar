@@ -26,14 +26,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CondicionIvaReceptor $condicion_iva
  * @property string|null $domicilio
  * @property string|null $email
+ * @property string|null $plantilla_descripcion Descripción habitual, con marcadores
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read Emisor $emisor
  */
-#[Fillable(['tipo_documento', 'numero_documento', 'nombre', 'condicion_iva', 'domicilio', 'email'])]
+#[Fillable(['tipo_documento', 'numero_documento', 'nombre', 'condicion_iva', 'domicilio', 'email', 'plantilla_descripcion'])]
 class Cliente extends Model
 {
+    public const int PLANTILLA_MAXIMA = 1000;
+
     /** @use HasFactory<ClienteFactory> */
     use HasFactory, SoftDeletes;
 
@@ -71,6 +74,7 @@ class Cliente extends Model
             'condicion_iva_etiqueta' => $this->condicion_iva->etiqueta(),
             'domicilio' => $this->domicilio,
             'email' => $this->email,
+            'plantilla_descripcion' => $this->plantilla_descripcion,
         ];
     }
 }

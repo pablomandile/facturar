@@ -105,7 +105,7 @@
         <tbody>
             @foreach ($items as $item)
                 <tr>
-                    <td>{{ $item['descripcion'] }}</td>
+                    <td>{!! nl2br(e($item['descripcion'])) !!}</td>
                     <td class="num">{{ $item['cantidad'] }}</td>
                     <td>{{ $item['unidad'] ?? 'unidades' }}</td>
                     <td class="num">{{ $item['precio'] }}</td>

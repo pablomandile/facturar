@@ -39,8 +39,13 @@ class GeneradorDePdf
         return 'Factura-C-'.$comprobante->numeroCompleto().'.pdf';
     }
 
-    /** @return array<string, mixed> */
-    private function datos(Comprobante $comprobante): array
+    /**
+     * Lo que recibe la vista del PDF. Público para poder revisar el HTML sin
+     * pasar por dompdf, que comprime el texto.
+     *
+     * @return array<string, mixed>
+     */
+    public function datos(Comprobante $comprobante): array
     {
         $emisor = $comprobante->emisor;
 

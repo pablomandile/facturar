@@ -114,6 +114,7 @@ class ExportadorDeDatos
                 'condicion_iva' => $c->condicion_iva->etiqueta(),
                 'domicilio' => $c->domicilio,
                 'email' => $c->email,
+                'descripcion_habitual' => $c->plantilla_descripcion,
             ])->all(),
             'comprobantes' => $emisor === null ? [] : Comprobante::query()
                 ->with(['puntoDeVenta', 'items'])

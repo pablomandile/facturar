@@ -75,6 +75,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('comprobantes', [ComprobanteController::class, 'store'])->name('comprobantes.store');
         Route::get('comprobantes/{comprobante}', [ComprobanteController::class, 'show'])->name('comprobantes.show');
         Route::get('comprobantes/{comprobante}/editar', [ComprobanteController::class, 'edit'])->name('comprobantes.edit');
+        // GET: abre el formulario precargado, no guarda nada.
+        Route::get('comprobantes/{comprobante}/duplicar', [ComprobanteController::class, 'duplicar'])->name('comprobantes.duplicar');
         Route::put('comprobantes/{comprobante}', [ComprobanteController::class, 'update'])->name('comprobantes.update');
         Route::post('comprobantes/{comprobante}/emitir', [ComprobanteController::class, 'emitir'])->name('comprobantes.emitir');
         Route::get('comprobantes/{comprobante}/pdf', [ComprobantePdfController::class, 'show'])->name('comprobantes.pdf');

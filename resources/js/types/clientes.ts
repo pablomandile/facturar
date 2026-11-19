@@ -8,6 +8,8 @@ export type Cliente = {
     condicion_iva_etiqueta: string;
     domicilio: string | null;
     email: string | null;
+    /** Descripción habitual con marcadores ({desde}, {importe_en_letras}…). */
+    plantilla_descripcion: string | null;
 };
 
 export type OpcionCodigo = {
