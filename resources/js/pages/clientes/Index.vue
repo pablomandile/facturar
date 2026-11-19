@@ -96,7 +96,10 @@ function borrar(cliente: Cliente): void {
             }}
         </p>
 
-        <ul v-else class="divide-y rounded-lg border">
+        <ul
+            v-else
+            class="divide-y overflow-hidden rounded-lg border bg-card shadow-sm [&>*:nth-child(even)]:bg-section-tint/50"
+        >
             <li
                 v-for="cliente in clientes.data"
                 :key="cliente.id"

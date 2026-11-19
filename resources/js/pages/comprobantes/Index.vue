@@ -45,7 +45,7 @@ defineProps<{
 
         <nav class="flex flex-wrap gap-1" aria-label="Filtrar por estado">
             <Button
-                :variant="estado === null ? 'secondary' : 'ghost'"
+                :variant="estado === null ? 'default' : 'ghost'"
                 size="sm"
                 as-child
             >
@@ -54,7 +54,7 @@ defineProps<{
             <Button
                 v-for="opcion in estados"
                 :key="opcion.value"
-                :variant="estado === opcion.value ? 'secondary' : 'ghost'"
+                :variant="estado === opcion.value ? 'default' : 'ghost'"
                 size="sm"
                 as-child
             >
@@ -76,7 +76,10 @@ defineProps<{
             No hay facturas{{ estado ? ' en ese estado' : ' todavía' }}.
         </p>
 
-        <ul v-else class="divide-y rounded-lg border">
+        <ul
+            v-else
+            class="divide-y overflow-hidden rounded-lg border bg-card shadow-sm [&>*:nth-child(even)]:bg-section-tint/50"
+        >
             <li v-for="fila in comprobantes.data" :key="fila.id">
                 <Link
                     :href="ComprobanteController.show(fila.id)"

@@ -101,7 +101,7 @@ defineProps<{
                 data-test="login-button"
             >
                 <Spinner v-if="processing" />
-                Log in
+                Iniciar sesión
             </Button>
         </div>
 

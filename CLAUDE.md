@@ -243,6 +243,18 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   de la PWA y `public/img/facturar-logo.webp` (el logo para documentar). Los PNG no se
   editan a mano.
 
+### Tema
+
+- Paleta celeste, la del admin de meditarenzn: `--primary` `hsl(199 70% 48%)` (#259ACF) sobre
+  blanco, menú `--sidebar` celeste muy pálido, `--section-*` para las franjas y las filas
+  alternadas. Todo en `resources/css/app.css`; el fondo inicial de `app.blade.php` lo repite.
+- Los colores del **logo** son otros y van en `--marca-azul` (#1f4e8c) y `--marca-celeste`
+  (#74acdf). El nombre se dibuja con `MarcaFacturar.vue`: "Factur" + **AR** en celeste.
+- Secciones de pantalla con `Seccion.vue` (franja celeste con el título; `tenue` para
+  alternar el cuerpo en celeste pálido). `Card` suelta queda para cifras y tarjetas sin título.
+- Listados: `divide-y` + `[&>*:nth-child(even)]:bg-section-tint/50`. Estados en chips de
+  color (`EstadoBadge`): verde autorizada, ámbar pendiente, rojo rechazada o con error.
+
 ### Tamaño de letra
 
 - Configuración → Apariencia, primero: Pequeño 87,5 % · **Normal 100 %** (default) · Grande

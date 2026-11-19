@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Circle, CircleCheck, Plus } from '@lucide/vue';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
+import Seccion from '@/components/Seccion.vue';
 import EstadoBadge from '@/components/comprobantes/EstadoBadge.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,43 +59,43 @@ const titulos: Record<keyof PasosConfiguracion, string> = {
             </Button>
         </header>
 
-        <Card v-if="!configurado">
-            <CardHeader>
-                <CardTitle>Antes de facturar</CardTitle>
-                <CardDescription>
-                    Tres pasos, una sola vez. Te guiamos en cada uno.
-                </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-4">
-                <ol class="space-y-2">
-                    <li
-                        v-for="(hecho, paso) in pasos"
-                        :key="paso"
-                        class="flex items-center gap-2 text-sm"
-                    >
-                        <CircleCheck
-                            v-if="hecho"
-                            class="size-4 text-green-600"
-                            aria-hidden="true"
-                        />
-                        <Circle v-else class="size-4" aria-hidden="true" />
-                        <span :class="{ 'text-muted-foreground': hecho }">{{
-                            titulos[paso]
-                        }}</span>
-                        <span class="sr-only">{{
-                            hecho ? '(listo)' : '(pendiente)'
-                        }}</span>
-                    </li>
-                </ol>
-                <Button as-child>
-                    <Link :href="EmisorController.edit()">Seguir</Link>
-                </Button>
-            </CardContent>
-        </Card>
+        <Seccion
+            v-if="!configurado"
+            titulo="Antes de facturar"
+            tenue
+            clase-cuerpo="space-y-4"
+        >
+            <p class="text-sm text-muted-foreground">
+                Tres pasos, una sola vez. Te guiamos en cada uno.
+            </p>
+            <ol class="space-y-2">
+                <li
+                    v-for="(hecho, paso) in pasos"
+                    :key="paso"
+                    class="flex items-center gap-2 text-sm"
+                >
+                    <CircleCheck
+                        v-if="hecho"
+                        class="size-4 text-emerald-600 dark:text-emerald-400"
+                        aria-hidden="true"
+                    />
+                    <Circle v-else class="size-4" aria-hidden="true" />
+                    <span :class="{ 'text-muted-foreground': hecho }">{{
+                        titulos[paso]
+                    }}</span>
+                    <span class="sr-only">{{
+                        hecho ? '(listo)' : '(pendiente)'
+                    }}</span>
+                </li>
+            </ol>
+            <Button as-child>
+                <Link :href="EmisorController.edit()">Seguir</Link>
+            </Button>
+        </Seccion>
 
         <template v-if="mes">
             <div class="grid gap-4 sm:grid-cols-2">
-                <Card>
+                <Card class="border-l-4 border-l-primary">
                     <CardHeader>
                         <CardDescription class="first-letter:uppercase"
                             >Facturado en {{ mes.nombre }}</CardDescription
@@ -113,7 +114,7 @@ const titulos: Record<keyof PasosConfiguracion, string> = {
                     </CardContent>
                 </Card>
 
-                <Card v-if="certificado">
+                <Card v-if="certificado" class="border-l-4 border-l-primary">
                     <CardHeader>
                         <CardDescription>Certificado de ARCA</CardDescription>
                         <CardTitle
@@ -171,41 +172,39 @@ const titulos: Record<keyof PasosConfiguracion, string> = {
                 </template>
             </p>
 
-            <Card>
-                <CardHeader><CardTitle>Últimas facturas</CardTitle></CardHeader>
-                <CardContent>
-                    <p
-                        v-if="!ultimas?.length"
-                        class="text-sm text-muted-foreground"
-                    >
-                        Todavía no hiciste ninguna.
-                    </p>
-                    <ul v-else class="divide-y">
-                        <li v-for="fila in ultimas" :key="fila.id">
-                            <Link
-                                :href="ComprobanteController.show(fila.id)"
-                                class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 hover:underline"
+            <Seccion titulo="Últimas facturas" clase-cuerpo="p-0 sm:p-0">
+                <p
+                    v-if="!ultimas?.length"
+                    class="p-4 text-sm text-muted-foreground"
+                >
+                    Todavía no hiciste ninguna.
+                </p>
+                <ul
+                    v-else
+                    class="divide-y [&>*:nth-child(even)]:bg-section-tint/50"
+                >
+                    <li v-for="fila in ultimas" :key="fila.id">
+                        <Link
+                            :href="ComprobanteController.show(fila.id)"
+                            class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 hover:bg-accent"
+                        >
+                            <span class="min-w-0 flex-1 truncate">{{
+                                fila.receptor
+                            }}</span>
+                            <span
+                                class="font-mono text-xs text-muted-foreground"
+                                >{{ fila.numero }} ·
+                                {{ fechaCorta(fila.fecha) }}</span
                             >
-                                <span class="min-w-0 flex-1 truncate">{{
-                                    fila.receptor
-                                }}</span>
-                                <span
-                                    class="font-mono text-xs text-muted-foreground"
-                                    >{{ fila.numero }} ·
-                                    {{ fechaCorta(fila.fecha) }}</span
-                                >
-                                <span class="tabular-nums"
-                                    >$ {{ fila.total }}</span
-                                >
-                                <EstadoBadge
-                                    :estado="fila.estado"
-                                    :etiqueta="fila.estado_etiqueta"
-                                />
-                            </Link>
-                        </li>
-                    </ul>
-                </CardContent>
-            </Card>
+                            <span class="tabular-nums">$ {{ fila.total }}</span>
+                            <EstadoBadge
+                                :estado="fila.estado"
+                                :etiqueta="fila.estado_etiqueta"
+                            />
+                        </Link>
+                    </li>
+                </ul>
+            </Seccion>
         </template>
     </div>
 </template>

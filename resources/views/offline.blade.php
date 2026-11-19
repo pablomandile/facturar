@@ -40,7 +40,7 @@
                 box-sizing: border-box;
                 padding: .75rem 1.5rem;
                 border-radius: .5rem;
-                background: #1f4e8c;
+                background: #259acf;
                 color: #fff;
                 text-decoration: none;
                 font-weight: 600;

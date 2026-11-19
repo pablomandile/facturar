@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-
-const name = usePage().props.name;
+import MarcaFacturar from '@/components/MarcaFacturar.vue';
 </script>
 
 <template>
-    <AppLogoIcon class="size-8 shrink-0" />
-    <div class="ml-1 grid flex-1 text-left text-sm">
-        <span class="mb-0.5 truncate leading-tight font-semibold">{{
-            name
-        }}</span>
+    <!--
+        El ícono va envuelto: SidebarMenuButton fuerza a 16 px a todo svg que
+        sea hijo directo ([&>svg]:size-4) y el logo quedaba diminuto.
+    -->
+    <span class="flex size-8 shrink-0 items-center justify-center">
+        <AppLogoIcon class="size-8" />
+    </span>
+    <div class="ml-1 grid flex-1 text-left">
+        <MarcaFacturar class="truncate text-base leading-tight" />
     </div>
 </template>

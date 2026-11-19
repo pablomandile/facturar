@@ -4,7 +4,7 @@ import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteCon
 import ComprobantePdfController from '@/actions/App/Http/Controllers/ComprobantePdfController';
 import EstadoBadge from '@/components/comprobantes/EstadoBadge.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Seccion from '@/components/Seccion.vue';
 import { fechaCorta } from '@/lib/fechas';
 import type { ComprobanteDetalle } from '@/types/comprobantes';
 
@@ -93,73 +93,64 @@ function borrar(): void {
             unos minutos queda autorizada o con error.
         </p>
 
-        <Card>
-            <CardHeader><CardTitle>Receptor</CardTitle></CardHeader>
-            <CardContent class="space-y-1 text-sm">
-                <p class="font-medium">{{ comprobante.receptor.nombre }}</p>
-                <p v-if="comprobante.receptor.documento">
-                    {{ comprobante.receptor.documento }}
-                </p>
-                <p class="text-muted-foreground">
-                    {{ comprobante.receptor.condicion_iva }}
-                </p>
-                <p v-if="comprobante.receptor.domicilio">
-                    {{ comprobante.receptor.domicilio }}
-                </p>
-            </CardContent>
-        </Card>
+        <Seccion titulo="Receptor" clase-cuerpo="space-y-1 text-sm">
+            <p class="font-medium">{{ comprobante.receptor.nombre }}</p>
+            <p v-if="comprobante.receptor.documento">
+                {{ comprobante.receptor.documento }}
+            </p>
+            <p class="text-muted-foreground">
+                {{ comprobante.receptor.condicion_iva }}
+            </p>
+            <p v-if="comprobante.receptor.domicilio">
+                {{ comprobante.receptor.domicilio }}
+            </p>
+        </Seccion>
 
-        <Card>
-            <CardHeader><CardTitle>Detalle</CardTitle></CardHeader>
-            <CardContent class="space-y-3 text-sm">
-                <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <dt class="text-muted-foreground">Fecha</dt>
-                    <dd>{{ fechaCorta(comprobante.fecha_emision) }}</dd>
-                    <dt class="text-muted-foreground">Concepto</dt>
-                    <dd>{{ comprobante.concepto }}</dd>
-                    <template v-if="comprobante.fecha_servicio_desde">
-                        <dt class="text-muted-foreground">Período</dt>
-                        <dd>
-                            {{ fechaCorta(comprobante.fecha_servicio_desde) }}
-                            al
-                            {{ fechaCorta(comprobante.fecha_servicio_hasta) }}
-                        </dd>
-                        <dt class="text-muted-foreground">Vence el pago</dt>
-                        <dd>{{ fechaCorta(comprobante.fecha_vto_pago) }}</dd>
-                    </template>
-                </dl>
+        <Seccion titulo="Detalle" tenue clase-cuerpo="space-y-3 text-sm">
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
+                <dt class="text-muted-foreground">Fecha</dt>
+                <dd>{{ fechaCorta(comprobante.fecha_emision) }}</dd>
+                <dt class="text-muted-foreground">Concepto</dt>
+                <dd>{{ comprobante.concepto }}</dd>
+                <template v-if="comprobante.fecha_servicio_desde">
+                    <dt class="text-muted-foreground">Período</dt>
+                    <dd>
+                        {{ fechaCorta(comprobante.fecha_servicio_desde) }}
+                        al
+                        {{ fechaCorta(comprobante.fecha_servicio_hasta) }}
+                    </dd>
+                    <dt class="text-muted-foreground">Vence el pago</dt>
+                    <dd>{{ fechaCorta(comprobante.fecha_vto_pago) }}</dd>
+                </template>
+            </dl>
 
-                <ul class="divide-y border-y">
-                    <li
-                        v-for="(item, i) in comprobante.items"
-                        :key="i"
-                        class="flex flex-wrap justify-between gap-x-4 py-2"
-                    >
-                        <span
-                            class="min-w-0 flex-1 wrap-break-word whitespace-pre-line"
-                            >{{ item.descripcion }}</span
-                        >
-                        <span class="text-muted-foreground tabular-nums"
-                            >{{ item.cantidad }} × $
-                            {{ item.precio_unitario }}</span
-                        >
-                        <span class="w-28 text-right tabular-nums"
-                            >$ {{ item.importe }}</span
-                        >
-                    </li>
-                </ul>
-
-                <p class="text-right text-lg font-semibold tabular-nums">
-                    Total $ {{ comprobante.total }}
-                </p>
-                <p
-                    v-if="comprobante.observaciones"
-                    class="text-muted-foreground"
+            <ul class="divide-y border-y">
+                <li
+                    v-for="(item, i) in comprobante.items"
+                    :key="i"
+                    class="flex flex-wrap justify-between gap-x-4 py-2"
                 >
-                    {{ comprobante.observaciones }}
-                </p>
-            </CardContent>
-        </Card>
+                    <span
+                        class="min-w-0 flex-1 wrap-break-word whitespace-pre-line"
+                        >{{ item.descripcion }}</span
+                    >
+                    <span class="text-muted-foreground tabular-nums"
+                        >{{ item.cantidad }} × $
+                        {{ item.precio_unitario }}</span
+                    >
+                    <span class="w-28 text-right tabular-nums"
+                        >$ {{ item.importe }}</span
+                    >
+                </li>
+            </ul>
+
+            <p class="text-right text-lg font-semibold tabular-nums">
+                Total $ {{ comprobante.total }}
+            </p>
+            <p v-if="comprobante.observaciones" class="text-muted-foreground">
+                {{ comprobante.observaciones }}
+            </p>
+        </Seccion>
 
         <div class="flex flex-wrap gap-2">
             <Button v-if="comprobante.estado === 'autorizado'" as-child>

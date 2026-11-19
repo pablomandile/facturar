@@ -5,8 +5,8 @@ import { computed, ref, watch } from 'vue';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import InputError from '@/components/InputError.vue';
+import Seccion from '@/components/Seccion.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatearCentavos, importeDeItem } from '@/lib/moneda';
@@ -196,257 +196,238 @@ const claseCampo =
         >
             <input type="hidden" name="emitir" :value="emitir ? '1' : '0'" />
 
-            <Card>
-                <CardHeader
-                    ><CardTitle>Datos de la factura</CardTitle></CardHeader
-                >
-                <CardContent class="grid gap-4 sm:grid-cols-2">
-                    <div class="grid gap-2">
-                        <Label for="punto_de_venta_id">Punto de venta</Label>
-                        <select
-                            id="punto_de_venta_id"
-                            name="punto_de_venta_id"
-                            :class="claseCampo"
-                        >
-                            <option
-                                v-for="punto in puntosDeVenta"
-                                :key="punto.id"
-                                :value="punto.id"
-                                :selected="
-                                    punto.id === inicial?.punto_de_venta_id
-                                "
-                            >
-                                {{ punto.etiqueta }}
-                            </option>
-                        </select>
-                        <InputError :message="errors.punto_de_venta_id" />
-                    </div>
-
-                    <div class="grid gap-2">
-                        <Label for="fecha_emision">Fecha</Label>
-                        <Input
-                            id="fecha_emision"
-                            name="fecha_emision"
-                            type="date"
-                            :default-value="inicial?.fecha_emision ?? hoy"
-                            required
-                        />
-                        <InputError :message="errors.fecha_emision" />
-                    </div>
-
-                    <div class="grid gap-2 sm:col-span-2">
-                        <Label for="cliente_id">Cliente</Label>
-                        <select
-                            id="cliente_id"
-                            v-model="clienteId"
-                            name="cliente_id"
-                            :class="claseCampo"
-                        >
-                            <option value="">Consumidor final</option>
-                            <option
-                                v-for="cliente in clientes"
-                                :key="cliente.id"
-                                :value="String(cliente.id)"
-                            >
-                                {{ cliente.etiqueta }}
-                            </option>
-                        </select>
-                        <InputError :message="errors.cliente_id" />
-                    </div>
-
-                    <div class="grid gap-2 sm:col-span-2">
-                        <Label for="concepto">Qué facturás</Label>
-                        <select
-                            id="concepto"
-                            v-model="concepto"
-                            name="concepto"
-                            :class="claseCampo"
-                        >
-                            <option
-                                v-for="opcion in conceptos"
-                                :key="opcion.value"
-                                :value="opcion.value"
-                            >
-                                {{ opcion.etiqueta }}
-                            </option>
-                        </select>
-                        <InputError :message="errors.concepto" />
-                    </div>
-
-                    <template v-if="conServicios">
-                        <div class="grid gap-2">
-                            <Label for="fecha_servicio_desde"
-                                >Período desde</Label
-                            >
-                            <Input
-                                id="fecha_servicio_desde"
-                                v-model="desde"
-                                name="fecha_servicio_desde"
-                                type="date"
-                            />
-                            <InputError
-                                :message="errors.fecha_servicio_desde"
-                            />
-                        </div>
-                        <div class="grid gap-2">
-                            <Label for="fecha_servicio_hasta"
-                                >Período hasta</Label
-                            >
-                            <Input
-                                id="fecha_servicio_hasta"
-                                v-model="hasta"
-                                name="fecha_servicio_hasta"
-                                type="date"
-                            />
-                            <InputError
-                                :message="errors.fecha_servicio_hasta"
-                            />
-                        </div>
-                        <div class="grid gap-2">
-                            <Label for="fecha_vto_pago"
-                                >Vencimiento del pago</Label
-                            >
-                            <Input
-                                id="fecha_vto_pago"
-                                name="fecha_vto_pago"
-                                type="date"
-                                :default-value="inicial?.fecha_vto_pago ?? hoy"
-                            />
-                            <InputError :message="errors.fecha_vto_pago" />
-                        </div>
-                    </template>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader><CardTitle>Ítems</CardTitle></CardHeader>
-                <CardContent class="space-y-4">
-                    <InputError :message="errors.items" />
-
-                    <fieldset
-                        v-for="(item, i) in items"
-                        :key="i"
-                        class="grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-[6rem_8rem_1fr]"
+            <Seccion
+                titulo="Datos de la factura"
+                clase-cuerpo="grid gap-4 sm:grid-cols-2"
+            >
+                <div class="grid gap-2">
+                    <Label for="punto_de_venta_id">Punto de venta</Label>
+                    <select
+                        id="punto_de_venta_id"
+                        name="punto_de_venta_id"
+                        :class="claseCampo"
                     >
-                        <legend class="sr-only">Ítem {{ i + 1 }}</legend>
-                        <div class="col-span-2 grid gap-1 sm:col-span-3">
-                            <Label :for="`descripcion-${i}`">Descripción</Label>
-                            <!--
+                        <option
+                            v-for="punto in puntosDeVenta"
+                            :key="punto.id"
+                            :value="punto.id"
+                            :selected="punto.id === inicial?.punto_de_venta_id"
+                        >
+                            {{ punto.etiqueta }}
+                        </option>
+                    </select>
+                    <InputError :message="errors.punto_de_venta_id" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="fecha_emision">Fecha</Label>
+                    <Input
+                        id="fecha_emision"
+                        name="fecha_emision"
+                        type="date"
+                        :default-value="inicial?.fecha_emision ?? hoy"
+                        required
+                    />
+                    <InputError :message="errors.fecha_emision" />
+                </div>
+
+                <div class="grid gap-2 sm:col-span-2">
+                    <Label for="cliente_id">Cliente</Label>
+                    <select
+                        id="cliente_id"
+                        v-model="clienteId"
+                        name="cliente_id"
+                        :class="claseCampo"
+                    >
+                        <option value="">Consumidor final</option>
+                        <option
+                            v-for="cliente in clientes"
+                            :key="cliente.id"
+                            :value="String(cliente.id)"
+                        >
+                            {{ cliente.etiqueta }}
+                        </option>
+                    </select>
+                    <InputError :message="errors.cliente_id" />
+                </div>
+
+                <div class="grid gap-2 sm:col-span-2">
+                    <Label for="concepto">Qué facturás</Label>
+                    <select
+                        id="concepto"
+                        v-model="concepto"
+                        name="concepto"
+                        :class="claseCampo"
+                    >
+                        <option
+                            v-for="opcion in conceptos"
+                            :key="opcion.value"
+                            :value="opcion.value"
+                        >
+                            {{ opcion.etiqueta }}
+                        </option>
+                    </select>
+                    <InputError :message="errors.concepto" />
+                </div>
+
+                <template v-if="conServicios">
+                    <div class="grid gap-2">
+                        <Label for="fecha_servicio_desde">Período desde</Label>
+                        <Input
+                            id="fecha_servicio_desde"
+                            v-model="desde"
+                            name="fecha_servicio_desde"
+                            type="date"
+                        />
+                        <InputError :message="errors.fecha_servicio_desde" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="fecha_servicio_hasta">Período hasta</Label>
+                        <Input
+                            id="fecha_servicio_hasta"
+                            v-model="hasta"
+                            name="fecha_servicio_hasta"
+                            type="date"
+                        />
+                        <InputError :message="errors.fecha_servicio_hasta" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="fecha_vto_pago">Vencimiento del pago</Label>
+                        <Input
+                            id="fecha_vto_pago"
+                            name="fecha_vto_pago"
+                            type="date"
+                            :default-value="inicial?.fecha_vto_pago ?? hoy"
+                        />
+                        <InputError :message="errors.fecha_vto_pago" />
+                    </div>
+                </template>
+            </Seccion>
+
+            <Seccion titulo="Ítems" clase-cuerpo="space-y-4">
+                <InputError :message="errors.items" />
+
+                <fieldset
+                    v-for="(item, i) in items"
+                    :key="i"
+                    class="grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-[6rem_8rem_1fr]"
+                >
+                    <legend class="sr-only">Ítem {{ i + 1 }}</legend>
+                    <div class="col-span-2 grid gap-1 sm:col-span-3">
+                        <Label :for="`descripcion-${i}`">Descripción</Label>
+                        <!--
                                 Tres líneas como mínimo y crece con el texto
                                 (field-sizing). El PDF respeta los saltos.
                             -->
-                            <textarea
-                                :id="`descripcion-${i}`"
-                                v-model="item.descripcion"
-                                :name="`items[${i}][descripcion]`"
-                                rows="3"
-                                maxlength="1000"
-                                :class="[
-                                    claseCampo,
-                                    'field-sizing-content h-auto min-h-[calc(3lh+1rem)] py-2 leading-normal',
-                                ]"
-                                @input="editarDescripcion(i)"
-                            />
-                            <div
-                                v-if="i === 0 && plantilla"
-                                class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground"
-                            >
-                                <span v-if="descripcionAutomatica"
-                                    >Se completa con la descripción habitual del
-                                    cliente: sigue al período y al total.</span
-                                >
-                                <span v-else
-                                    >Editada a mano: el período y el total ya no
-                                    la cambian.</span
-                                >
-                                <Button
-                                    v-if="!descripcionAutomatica"
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    data-test="usar-descripcion-habitual"
-                                    @click="usarDescripcionHabitual"
-                                >
-                                    <RefreshCw aria-hidden="true" /> Usar la
-                                    descripción habitual
-                                </Button>
-                            </div>
-                            <InputError
-                                :message="errors[`items.${i}.descripcion`]"
-                            />
-                        </div>
-                        <div class="grid gap-1">
-                            <Label :for="`cantidad-${i}`">Cantidad</Label>
-                            <Input
-                                :id="`cantidad-${i}`"
-                                v-model="item.cantidad"
-                                :name="`items[${i}][cantidad]`"
-                                inputmode="decimal"
-                            />
-                            <InputError
-                                :message="errors[`items.${i}.cantidad`]"
-                            />
-                        </div>
-                        <div class="grid gap-1">
-                            <Label :for="`precio-${i}`">Precio unitario</Label>
-                            <Input
-                                :id="`precio-${i}`"
-                                v-model="item.precio_unitario"
-                                :name="`items[${i}][precio_unitario]`"
-                                inputmode="decimal"
-                                placeholder="0,00"
-                            />
-                            <InputError
-                                :message="errors[`items.${i}.precio_unitario`]"
-                            />
-                        </div>
+                        <textarea
+                            :id="`descripcion-${i}`"
+                            v-model="item.descripcion"
+                            :name="`items[${i}][descripcion]`"
+                            rows="3"
+                            maxlength="1000"
+                            :class="[
+                                claseCampo,
+                                'field-sizing-content h-auto min-h-[calc(3lh+1rem)] py-2 leading-normal',
+                            ]"
+                            @input="editarDescripcion(i)"
+                        />
                         <div
-                            class="col-span-2 flex items-end justify-between gap-2 sm:col-span-1 sm:justify-end"
+                            v-if="i === 0 && plantilla"
+                            class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground"
                         >
-                            <span class="text-sm tabular-nums"
-                                >$
-                                {{
-                                    formatearCentavos(
-                                        importeDeItem(
-                                            item.cantidad,
-                                            item.precio_unitario,
-                                        ),
-                                    )
-                                }}</span
+                            <span v-if="descripcionAutomatica"
+                                >Se completa con la descripción habitual del
+                                cliente: sigue al período y al total.</span
+                            >
+                            <span v-else
+                                >Editada a mano: el período y el total ya no la
+                                cambian.</span
                             >
                             <Button
-                                v-if="items.length > 1"
+                                v-if="!descripcionAutomatica"
                                 type="button"
-                                variant="ghost"
-                                size="icon"
-                                :aria-label="`Quitar el ítem ${i + 1}`"
-                                @click="items.splice(i, 1)"
+                                variant="outline"
+                                size="sm"
+                                data-test="usar-descripcion-habitual"
+                                @click="usarDescripcionHabitual"
                             >
-                                <Trash2 aria-hidden="true" />
+                                <RefreshCw aria-hidden="true" /> Usar la
+                                descripción habitual
                             </Button>
                         </div>
-                    </fieldset>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="items.push(itemVacio())"
+                        <InputError
+                            :message="errors[`items.${i}.descripcion`]"
+                        />
+                    </div>
+                    <div class="grid gap-1">
+                        <Label :for="`cantidad-${i}`">Cantidad</Label>
+                        <Input
+                            :id="`cantidad-${i}`"
+                            v-model="item.cantidad"
+                            :name="`items[${i}][cantidad]`"
+                            inputmode="decimal"
+                        />
+                        <InputError :message="errors[`items.${i}.cantidad`]" />
+                    </div>
+                    <div class="grid gap-1">
+                        <Label :for="`precio-${i}`">Precio unitario</Label>
+                        <Input
+                            :id="`precio-${i}`"
+                            v-model="item.precio_unitario"
+                            :name="`items[${i}][precio_unitario]`"
+                            inputmode="decimal"
+                            placeholder="0,00"
+                        />
+                        <InputError
+                            :message="errors[`items.${i}.precio_unitario`]"
+                        />
+                    </div>
+                    <div
+                        class="col-span-2 flex items-end justify-between gap-2 sm:col-span-1 sm:justify-end"
                     >
-                        <Plus aria-hidden="true" /> Agregar ítem
-                    </Button>
+                        <span class="text-sm tabular-nums"
+                            >$
+                            {{
+                                formatearCentavos(
+                                    importeDeItem(
+                                        item.cantidad,
+                                        item.precio_unitario,
+                                    ),
+                                )
+                            }}</span
+                        >
+                        <Button
+                            v-if="items.length > 1"
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            :aria-label="`Quitar el ítem ${i + 1}`"
+                            @click="items.splice(i, 1)"
+                        >
+                            <Trash2 aria-hidden="true" />
+                        </Button>
+                    </div>
+                </fieldset>
 
-                    <p class="text-right text-lg font-semibold tabular-nums">
-                        Total $ {{ formatearCentavos(total) }}
-                    </p>
-                    <p
-                        v-if="consumidorFinalSobreElTope"
-                        class="text-sm text-destructive"
-                    >
-                        Desde $ {{ formatearCentavos(topeConsumidorFinal) }} hay
-                        que identificar al comprador: elegí el cliente.
-                    </p>
-                </CardContent>
-            </Card>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="items.push(itemVacio())"
+                >
+                    <Plus aria-hidden="true" /> Agregar ítem
+                </Button>
+
+                <p class="text-right text-lg font-semibold tabular-nums">
+                    Total $ {{ formatearCentavos(total) }}
+                </p>
+                <p
+                    v-if="consumidorFinalSobreElTope"
+                    class="text-sm text-destructive"
+                >
+                    Desde $ {{ formatearCentavos(topeConsumidorFinal) }} hay que
+                    identificar al comprador: elegí el cliente.
+                </p>
+            </Seccion>
 
             <div class="grid gap-2">
                 <Label for="observaciones">Observaciones (opcional)</Label>

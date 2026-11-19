@@ -59,6 +59,16 @@ jobs:
       - name: Setup Application
         run: composer setup
 
-      # Pint, PHPStan, ESLint, Prettier, vue-tsc y Pest.
-      - name: Run CI Checks
-        run: composer ci:check
+      # Lo mismo que `composer ci:check`, en pasos separados: el log del job
+      # pide iniciar sesión en GitHub, pero qué paso falló se ve en público.
+      - name: Formato y lint del front
+        run: npm run check
+
+      - name: Tipos del front (vue-tsc)
+        run: npm run types:check
+
+      - name: Tests del front (Vitest)
+        run: npm run test:front
+
+      - name: Pint, PHPStan y Pest
+        run: composer test

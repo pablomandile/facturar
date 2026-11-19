@@ -3,6 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import MarcaFacturar from '@/components/MarcaFacturar.vue';
 import { dashboard, home } from '@/routes';
 
 /*
@@ -95,11 +96,16 @@ const conSesion = computed(() => Boolean(page.props.auth.user));
 <template>
     <Head title="Cookies y datos guardados" />
 
-    <div class="min-h-svh bg-background text-foreground">
+    <div
+        class="min-h-svh border-t-4 border-section-head bg-background text-foreground"
+    >
         <header
             class="mx-auto flex w-full max-w-2xl items-center gap-3 px-4 pt-4 sm:px-6 sm:pt-6"
         >
-            <AppLogoIcon class="size-8" />
+            <span class="flex items-center gap-2 text-lg">
+                <AppLogoIcon class="size-8" />
+                <MarcaFacturar />
+            </span>
             <Link
                 :href="conSesion ? dashboard() : home()"
                 class="ml-auto inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"

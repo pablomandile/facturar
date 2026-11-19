@@ -6,14 +6,8 @@ import CertificadoArca from '@/components/emisor/CertificadoArca.vue';
 import DatosFiscales from '@/components/emisor/DatosFiscales.vue';
 import ProbarConexion from '@/components/emisor/ProbarConexion.vue';
 import PuntosDeVenta from '@/components/emisor/PuntosDeVenta.vue';
+import Seccion from '@/components/Seccion.vue';
 import { Badge } from '@/components/ui/badge';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import type {
     Certificado,
     Emisor,
@@ -72,7 +66,7 @@ const resumen = [
                 >
                     <CircleCheck
                         v-if="props.pasos[paso.clave]"
-                        class="size-4 text-green-600"
+                        class="size-4 text-emerald-600 dark:text-emerald-400"
                         aria-hidden="true"
                     />
                     <Circle v-else class="size-4" aria-hidden="true" />
@@ -84,66 +78,65 @@ const resumen = [
             </ol>
         </header>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>1. Tus datos fiscales</CardTitle>
-                <CardDescription>
-                    Los que van impresos en cada factura.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <DatosFiscales
-                    :emisor="props.emisor"
-                    :ambientes="props.ambientes"
-                />
-            </CardContent>
-        </Card>
+        <Seccion titulo="1. Tus datos fiscales">
+            <p class="mb-4 text-sm text-muted-foreground">
+                Los que van impresos en cada factura.
+            </p>
+            <DatosFiscales
+                :emisor="props.emisor"
+                :ambientes="props.ambientes"
+            />
+        </Seccion>
 
-        <Card :class="{ 'opacity-60': !props.emisor }">
-            <CardHeader>
-                <CardTitle>2. Certificado de ARCA</CardTitle>
-                <CardDescription v-if="props.emisor">
-                    Para {{ props.emisor.ambiente_etiqueta }}.
-                </CardDescription>
-                <CardDescription v-else>
-                    Primero guardá tus datos fiscales.
-                </CardDescription>
-            </CardHeader>
-            <CardContent v-if="props.emisor">
-                <CertificadoArca
-                    :ambiente="props.emisor.ambiente"
-                    :ambiente-etiqueta="props.emisor.ambiente_etiqueta"
-                    :vigente="props.certificadoVigente"
-                    :pendiente="props.certificadoPendiente"
-                />
-            </CardContent>
-        </Card>
+        <Seccion
+            titulo="2. Certificado de ARCA"
+            tenue
+            :class="{ 'opacity-60': !props.emisor }"
+        >
+            <p class="mb-4 text-sm text-muted-foreground">
+                <template v-if="props.emisor"
+                    >Para {{ props.emisor.ambiente_etiqueta }}.</template
+                >
+                <template v-else>Primero guardá tus datos fiscales.</template>
+            </p>
+            <CertificadoArca
+                v-if="props.emisor"
+                :ambiente="props.emisor.ambiente"
+                :ambiente-etiqueta="props.emisor.ambiente_etiqueta"
+                :vigente="props.certificadoVigente"
+                :pendiente="props.certificadoPendiente"
+            />
+        </Seccion>
 
-        <Card :class="{ 'opacity-60': !props.emisor }">
-            <CardHeader>
-                <CardTitle>3. Puntos de venta</CardTitle>
-                <CardDescription>
-                    Desde dónde se numeran tus facturas.
-                </CardDescription>
-            </CardHeader>
-            <CardContent v-if="props.emisor">
-                <PuntosDeVenta
-                    :ambiente="props.emisor.ambiente"
-                    :puntos="props.puntosDeVenta"
-                />
-            </CardContent>
-        </Card>
+        <Seccion
+            titulo="3. Puntos de venta"
+            :class="{ 'opacity-60': !props.emisor }"
+        >
+            <p class="mb-4 text-sm text-muted-foreground">
+                Desde dónde se numeran tus facturas.
+            </p>
+            <PuntosDeVenta
+                v-if="props.emisor"
+                :ambiente="props.emisor.ambiente"
+                :puntos="props.puntosDeVenta"
+            />
+        </Seccion>
 
-        <Card :class="{ 'opacity-60': !props.pasos.certificado }">
-            <CardHeader>
-                <CardTitle>4. Probar la conexión con ARCA</CardTitle>
-                <CardDescription v-if="!props.pasos.certificado">
-                    Primero cargá el certificado.
-                </CardDescription>
-            </CardHeader>
-            <CardContent v-if="props.emisor">
-                <ProbarConexion :habilitado="props.pasos.certificado" />
-            </CardContent>
-        </Card>
+        <Seccion
+            titulo="4. Probar la conexión con ARCA"
+            tenue
+            :class="{ 'opacity-60': !props.pasos.certificado }"
+        >
+            <p
+                v-if="!props.pasos.certificado"
+                class="mb-4 text-sm text-muted-foreground"
+            >
+                Primero cargá el certificado.
+            </p>
+            <ProbarConexion
+                v-if="props.emisor"
+                :habilitado="props.pasos.certificado"
+            />
+        </Seccion>
     </div>
 </template>
