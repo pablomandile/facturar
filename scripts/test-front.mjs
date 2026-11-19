@@ -33,7 +33,14 @@ const vp = mayuscula(
 const { status } = spawnSync(
     process.execPath,
     [vp, 'test', 'run', ...process.argv.slice(2)],
-    { cwd, stdio: 'inherit' },
+    {
+        cwd,
+        stdio: 'inherit',
+        // En el CI (`CI=true`) laravel-vite-plugin corta con "You should not run
+        // the Vite HMR server in CI": confunde a Vitest con `vite dev`. Vitest no
+        // levanta ningún servidor, así que el chequeo no aplica.
+        env: { ...process.env, LARAVEL_BYPASS_ENV_CHECK: '1' },
+    },
 );
 
 process.exit(status ?? 1);
