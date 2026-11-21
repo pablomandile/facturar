@@ -171,6 +171,31 @@ describe('el texto del email', function () {
         expect($texto)->toBe('Ministerio de Prueba|00003-00000008|05/11/2026|01/10/2026|31/10/2026|octubre|2026|$ 2.169.169,00|20/11/2026|76461234567890|Pablo Ejemplo|{otro}');
     });
 
+    it('{alias} es el alias del cliente, y sin alias, su nombre', function () {
+        $comprobante = autorizada();
+
+        expect((new TextoDelEmail)->completar('Hola, {alias}', $comprobante))->toBe('Hola, Ministerio de Prueba');
+
+        $this->cliente->forceFill(['alias' => 'Ministerio'])->save();
+
+        expect((new TextoDelEmail)->completar('Hola, {alias}', $comprobante->fresh()))->toBe('Hola, Ministerio')
+            ->and((new TextoDelEmail)->para($comprobante->fresh()))->toStartWith('Hola, Ministerio:');
+    });
+
+    it('el alias se guarda con el cliente y se puede buscar por él', function () {
+        $this->put(route('clientes.update', $this->cliente), [
+            ...$this->cliente->only(['nombre', 'numero_documento', 'domicilio', 'email']),
+            'tipo_documento' => $this->cliente->tipo_documento->value,
+            'condicion_iva' => $this->cliente->condicion_iva->value,
+            'alias' => 'Ministerio',
+        ])->assertSessionHasNoErrors();
+
+        expect($this->cliente->fresh()?->alias)->toBe('Ministerio');
+
+        $this->get(route('clientes.index', ['q' => 'Minist']))
+            ->assertInertia(fn (Assert $p) => $p->where('clientes.data.0.alias', 'Ministerio'));
+    });
+
     it('sin período, el mes es el de la fecha de emisión', function () {
         $comprobante = autorizada(['fecha_emision' => '2026-11-05']);
 

@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property TipoDocumento $tipo_documento
  * @property string $numero_documento
  * @property string $nombre
+ * @property string|null $alias Nombre corto, para el trato (marcador {alias} del email)
  * @property CondicionIvaReceptor $condicion_iva
  * @property string|null $domicilio
  * @property string|null $email
@@ -32,7 +33,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarbonImmutable|null $deleted_at
  * @property-read Emisor $emisor
  */
-#[Fillable(['tipo_documento', 'numero_documento', 'nombre', 'condicion_iva', 'domicilio', 'email', 'plantilla_descripcion'])]
+#[Fillable(['tipo_documento', 'numero_documento', 'nombre', 'alias', 'condicion_iva', 'domicilio', 'email', 'plantilla_descripcion'])]
 class Cliente extends Model
 {
     public const int PLANTILLA_MAXIMA = 1000;
@@ -70,6 +71,7 @@ class Cliente extends Model
             'numero_documento' => $this->numero_documento,
             'documento' => $this->documentoFormateado(),
             'nombre' => $this->nombre,
+            'alias' => $this->alias,
             'condicion_iva' => $this->condicion_iva->value,
             'condicion_iva_etiqueta' => $this->condicion_iva->etiqueta(),
             'domicilio' => $this->domicilio,

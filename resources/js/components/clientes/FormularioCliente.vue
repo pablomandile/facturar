@@ -95,6 +95,23 @@ const claseSelect =
             <InputError :message="errors.nombre" />
         </div>
 
+        <div class="grid gap-2 sm:col-span-2">
+            <Label for="alias">Alias (opcional)</Label>
+            <Input
+                id="alias"
+                name="alias"
+                maxlength="60"
+                :default-value="cliente?.alias ?? ''"
+                placeholder="Por ejemplo: Ministerio"
+                autocomplete="off"
+            />
+            <p class="text-xs text-pretty text-muted-foreground">
+                Un nombre corto para el trato. En el email de tus facturas va
+                con el marcador {alias}.
+            </p>
+            <InputError :message="errors.alias" />
+        </div>
+
         <div class="grid gap-2">
             <Label for="tipo_documento">Documento</Label>
             <select

@@ -107,7 +107,14 @@ function borrar(cliente: Cliente): void {
                 class="flex flex-wrap items-center gap-x-3 gap-y-1 p-3"
             >
                 <div class="min-w-0 flex-1">
-                    <p class="truncate font-medium">{{ cliente.nombre }}</p>
+                    <p class="truncate font-medium">
+                        {{ cliente.nombre }}
+                        <span
+                            v-if="cliente.alias"
+                            class="font-normal text-muted-foreground"
+                            >({{ cliente.alias }})</span
+                        >
+                    </p>
                     <p class="text-sm text-muted-foreground">
                         {{ cliente.documento }} ·
                         {{ cliente.condicion_iva_etiqueta }}

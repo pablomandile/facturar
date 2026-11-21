@@ -399,7 +399,7 @@ class ComprobanteController extends Controller
                 ->get()
                 ->map(fn (Cliente $c): array => [
                     'id' => $c->id,
-                    'etiqueta' => "{$c->nombre} · {$c->documentoFormateado()}",
+                    'etiqueta' => ($c->alias ? "{$c->nombre} ({$c->alias})" : $c->nombre)." · {$c->documentoFormateado()}",
                     // El formulario la completa con el período y el total.
                     'plantilla' => $c->plantilla_descripcion,
                     // Para la casilla "Enviarla a … cuando ARCA la autorice".

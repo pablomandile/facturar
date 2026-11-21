@@ -111,6 +111,7 @@ class ExportadorDeDatos
             ])->all(),
             'clientes' => $emisor === null ? [] : Cliente::query()->where('emisor_id', $emisor->id)->orderBy('nombre')->get()->map(fn (Cliente $c): array => [
                 'nombre' => $c->nombre,
+                'alias' => $c->alias,
                 'tipo_documento' => $c->tipo_documento->etiqueta(),
                 'numero_documento' => $c->numero_documento,
                 'condicion_iva' => $c->condicion_iva->etiqueta(),

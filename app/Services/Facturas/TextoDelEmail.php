@@ -22,7 +22,7 @@ class TextoDelEmail
     public const PLANTILLA_MAXIMA = 2000;
 
     public const POR_DEFECTO = <<<'TEXTO'
-        Hola, {cliente}:
+        Hola, {alias}:
 
         Te envío la factura C {numero} del {fecha}, por {importe}. Va adjunta en PDF.
 
@@ -37,6 +37,7 @@ class TextoDelEmail
      */
     public const MARCADORES = [
         ['marcador' => '{cliente}', 'ejemplo' => 'Ministerio de Economía'],
+        ['marcador' => '{alias}', 'ejemplo' => 'Ministerio'],
         ['marcador' => '{numero}', 'ejemplo' => '00001-00000008'],
         ['marcador' => '{fecha}', 'ejemplo' => '05/11/2026'],
         ['marcador' => '{desde}', 'ejemplo' => '01/10/2026'],
@@ -65,6 +66,9 @@ class TextoDelEmail
 
         $valores = [
             'cliente' => $comprobante->receptor_nombre,
+            // El alias del cliente; sin alias (o consumidor final), el nombre:
+            // un saludo nunca queda con un hueco.
+            'alias' => trim((string) $comprobante->cliente?->alias) ?: $comprobante->receptor_nombre,
             'numero' => $comprobante->numeroCompleto(),
             'fecha' => self::fecha($comprobante->fecha_emision),
             'desde' => self::fecha($comprobante->fecha_servicio_desde),

@@ -173,6 +173,8 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - El texto es la plantilla del emisor (`emisores.plantilla_email`, vacía = `TextoDelEmail::POR_DEFECTO`)
   y **se completa en el servidor** (`TextoDelEmail`), no en el front como la descripción: el envío
   automático no pasa por ninguna pantalla. Sin `{importe_en_letras}` (vive en TS); va en el PDF.
+  `{alias}` es `clientes.alias` y, si está vacío, el nombre del receptor: un saludo nunca queda
+  con un hueco (el texto por defecto arranca con "Hola, {alias}:").
 - Sale de `MAIL_FROM_ADDRESS` con el nombre "{razón social} vía FacturAR" y **Reply-To al email
   de la cuenta**: las respuestas le llegan al emisor, no a la app.
 - **Homologación: solo al email de la cuenta.** Lo frenan el FormRequest y el enviador, y la

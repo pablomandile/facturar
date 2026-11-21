@@ -40,7 +40,7 @@ class ClienteGuardarRequest extends FormRequest
             $this->merge(['numero_documento' => preg_replace('/\D/', '', $numero)]);
         }
 
-        foreach (['domicilio', 'email'] as $campo) {
+        foreach (['alias', 'domicilio', 'email'] as $campo) {
             if ($this->input($campo) === '') {
                 $this->merge([$campo => null]);
             }
@@ -54,6 +54,7 @@ class ClienteGuardarRequest extends FormRequest
             'tipo_documento' => ['required', 'integer', Rule::in(array_map(fn (TipoDocumento $t): int => $t->value, TipoDocumento::deClientes()))],
             'numero_documento' => ['required', 'string', 'max:11'],
             'nombre' => ['required', 'string', 'max:120'],
+            'alias' => ['nullable', 'string', 'max:60'],
             'condicion_iva' => ['required', Rule::enum(CondicionIvaReceptor::class)],
             'domicilio' => ['nullable', 'string', 'max:200'],
             'email' => ['nullable', 'email', 'max:255'],

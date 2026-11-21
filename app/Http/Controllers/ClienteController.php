@@ -34,6 +34,7 @@ class ClienteController extends Controller
 
                 $consulta->where(fn ($q) => $q
                     ->where('nombre', 'like', "%{$busqueda}%")
+                    ->orWhere('alias', 'like', "%{$busqueda}%")
                     ->when($digitos !== '', fn ($q) => $q->orWhere('numero_documento', 'like', "%{$digitos}%")));
             })
             ->orderBy('nombre')

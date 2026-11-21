@@ -4,6 +4,8 @@ export type Cliente = {
     numero_documento: string;
     documento: string;
     nombre: string;
+    /** Nombre corto, para el trato: el marcador {alias} del email. */
+    alias: string | null;
     condicion_iva: number;
     condicion_iva_etiqueta: string;
     domicilio: string | null;
