@@ -3,6 +3,7 @@ import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { Plus, Search } from '@lucide/vue';
 import { ref } from 'vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
+import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import FormularioCliente from '@/components/clientes/FormularioCliente.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -113,6 +114,17 @@ function borrar(cliente: Cliente): void {
                     </p>
                 </div>
                 <div class="flex gap-1">
+                    <Button variant="outline" size="sm" as-child>
+                        <Link
+                            :href="
+                                ComprobanteController.create({
+                                    query: { cliente: cliente.id },
+                                })
+                            "
+                            data-test="facturar-cliente"
+                            >Facturar</Link
+                        >
+                    </Button>
                     <Button variant="ghost" size="sm" @click="abrir(cliente)">
                         Editar
                     </Button>

@@ -153,6 +153,9 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   La completa **el front** (`lib/plantillaDescripcion.ts`) en el primer ítem y la rehace
   mientras cambian el período o el total; al editarla a mano deja de pisarla. Lo que se
   guarda es el texto final: ARCA no recibe los ítems, solo el PDF.
+- Una factura nueva **arranca con un cliente** (`clienteSugerido`): el de `?cliente=` (botón
+  "Facturar" del listado), si no el de la última factura, si no el único cliente. Sin eso
+  arrancaba en consumidor final y la descripción se veía vacía hasta elegir el cliente.
 - `lib/importeEnLetras.ts`: centavos → "Dos millones … pesos con cero centavos". Apócope
   ("veintiún mil", "un peso") y "de" en millones exactos; lo cubren los tests de Vitest.
 - La descripción de un ítem es `text`, hasta `ComprobanteItem::DESCRIPCION_MAXIMA` (1000),

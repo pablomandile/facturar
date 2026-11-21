@@ -35,6 +35,8 @@ const props = defineProps<{
     base: ComprobanteBase | null;
     /** De qué sale la copia ("la factura 00001-…" o "un borrador"). */
     duplicadoDe: string | null;
+    /** Solo en una factura nueva: el cliente con el que arranca. */
+    clienteSugerido?: number | null;
     puntosDeVenta: Opcion[];
     clientes: OpcionCliente[];
     conceptos: OpcionConcepto[];
@@ -60,7 +62,11 @@ const items = ref<ItemDelFormulario[]>(
         : [itemVacio()],
 );
 const concepto = ref(inicial?.concepto ?? 2);
-const clienteId = ref<string>(String(inicial?.cliente_id ?? ''));
+const clienteId = ref<string>(
+    String(
+        inicial ? (inicial.cliente_id ?? '') : (props.clienteSugerido ?? ''),
+    ),
+);
 const desde = ref(inicial?.fecha_servicio_desde ?? props.inicioDeMes);
 const hasta = ref(inicial?.fecha_servicio_hasta ?? props.finDeMes);
 // Qué botón se tocó: el campo oculto viaja con el formulario.
@@ -355,6 +361,14 @@ const claseCampo =
                                 descripción habitual
                             </Button>
                         </div>
+                        <p
+                            v-else-if="i === 0 && clienteId !== ''"
+                            class="text-xs text-muted-foreground"
+                        >
+                            Este cliente no tiene descripción habitual. Cargala
+                            en Clientes y se completa sola con el período y el
+                            total de cada factura.
+                        </p>
                         <InputError
                             :message="errors[`items.${i}.descripcion`]"
                         />

@@ -74,12 +74,42 @@ class ComprobanteController extends Controller
 
     public function create(Request $peticion): Response
     {
+        $emisor = $this->emisorDe($peticion);
+
         return Inertia::render('comprobantes/Formulario', [
-            ...$this->datosDelFormulario($this->emisorDe($peticion)),
+            ...$this->datosDelFormulario($emisor),
             'comprobante' => null,
             'base' => null,
             'duplicadoDe' => null,
+            'clienteSugerido' => $this->clienteSugerido($emisor, $peticion->integer('cliente')),
         ]);
+    }
+
+    /**
+     * Con qué cliente arranca una factura nueva: el que se pidió
+     * (`?cliente=`, desde el listado de clientes), si no el de la última
+     * factura, y si no el único cliente que haya. Así la descripción habitual
+     * ya aparece completa al abrir el formulario. Sin ninguno, consumidor final.
+     */
+    private function clienteSugerido(Emisor $emisor, int $pedido): ?int
+    {
+        $clientes = Cliente::query()->where('emisor_id', $emisor->id);
+
+        if ($pedido > 0 && (clone $clientes)->whereKey($pedido)->exists()) {
+            return $pedido;
+        }
+
+        $ultimo = Comprobante::query()
+            ->where('emisor_id', $emisor->id)
+            ->whereIn('cliente_id', (clone $clientes)->select('id'))
+            ->latest('id')
+            ->value('cliente_id');
+
+        if ($ultimo !== null) {
+            return (int) $ultimo;
+        }
+
+        return (clone $clientes)->count() === 1 ? (int) (clone $clientes)->value('id') : null;
     }
 
     public function store(ComprobanteGuardarRequest $peticion): RedirectResponse

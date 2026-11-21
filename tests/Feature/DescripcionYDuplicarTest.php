@@ -77,6 +77,45 @@ describe('la descripción habitual del cliente', function () {
     });
 });
 
+describe('el cliente con el que arranca una factura nueva', function () {
+    // Para que la descripción habitual ya aparezca completa al abrir el formulario.
+
+    it('es el único cliente, si hay uno solo', function () {
+        $cliente = Cliente::factory()->for($this->emisor)->create();
+
+        $this->get(route('comprobantes.create'))
+            ->assertInertia(fn (Assert $p) => $p->where('clienteSugerido', $cliente->id));
+    });
+
+    it('es el de la última factura, si hay varios', function () {
+        [$primero, $segundo] = Cliente::factory()->for($this->emisor)->count(2)->create();
+        facturaDeOctubre($primero);
+        // Un borrador también cuenta: es lo último que se le facturó.
+        Comprobante::factory()->paraPunto($this->punto)->create(['cliente_id' => $segundo->id]);
+
+        $this->get(route('comprobantes.create'))
+            ->assertInertia(fn (Assert $p) => $p->where('clienteSugerido', $segundo->id));
+    });
+
+    it('es el pedido desde el listado de clientes, y solo si es del emisor', function () {
+        [$uno, $otro] = Cliente::factory()->for($this->emisor)->count(2)->create();
+        $ajeno = Cliente::factory()->create();
+
+        $this->get(route('comprobantes.create', ['cliente' => $otro->id]))
+            ->assertInertia(fn (Assert $p) => $p->where('clienteSugerido', $otro->id));
+
+        $this->get(route('comprobantes.create', ['cliente' => $ajeno->id]))
+            ->assertInertia(fn (Assert $p) => $p->where('clienteSugerido', null));
+    });
+
+    it('es consumidor final si hay varios clientes y ninguna factura', function () {
+        Cliente::factory()->for($this->emisor)->count(2)->create();
+
+        $this->get(route('comprobantes.create'))
+            ->assertInertia(fn (Assert $p) => $p->where('clienteSugerido', null));
+    });
+});
+
 describe('la descripción de un ítem', function () {
     function facturaConDescripcion(string $descripcion): array
     {
