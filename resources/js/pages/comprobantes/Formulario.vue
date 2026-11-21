@@ -45,6 +45,7 @@ const props = defineProps<{
     finDeMes: string;
     topeConsumidorFinal: number;
     ambiente: string;
+    esProduccion: boolean;
 }>();
 
 const inicial = props.comprobante ?? props.base;
@@ -96,11 +97,20 @@ const consumidorFinalSobreElTope = computed(
  *
  * Al editar un borrador arranca apagada: lo guardado se respeta.
  */
-const plantilla = computed(
-    () =>
-        props.clientes.find((c) => String(c.id) === clienteId.value)
-            ?.plantilla ?? null,
+const clienteElegido = computed(
+    () => props.clientes.find((c) => String(c.id) === clienteId.value) ?? null,
 );
+const plantilla = computed(() => clienteElegido.value?.plantilla ?? null);
+
+/*
+ * "Enviarla a … cuando ARCA la autorice" (EnviarAlAutorizar): solo en
+ * producción y con un cliente que tenga email. Tildada salvo que un borrador
+ * guardado diga lo contrario.
+ */
+const emailDelCliente = computed(() =>
+    props.esProduccion ? (clienteElegido.value?.email ?? null) : null,
+);
+const enviarAlAutorizar = ref(inicial?.enviar_al_autorizar ?? true);
 const descripcionGenerada = computed(() =>
     plantilla.value
         ? completarPlantilla(plantilla.value, {
@@ -255,6 +265,23 @@ const claseCampo =
                         </option>
                     </select>
                     <InputError :message="errors.cliente_id" />
+                    <label
+                        v-if="emailDelCliente"
+                        class="flex items-center gap-2 text-sm"
+                    >
+                        <input
+                            v-model="enviarAlAutorizar"
+                            type="checkbox"
+                            name="enviar_al_autorizar"
+                            value="1"
+                            class="size-4 accent-primary"
+                            data-test="enviar-al-autorizar"
+                        />
+                        <span class="wrap-anywhere"
+                            >Enviarla a {{ emailDelCliente }} cuando ARCA la
+                            autorice</span
+                        >
+                    </label>
                 </div>
 
                 <div class="grid gap-2 sm:col-span-2">

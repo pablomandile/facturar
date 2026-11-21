@@ -12,3 +12,17 @@ export function fechaCorta(iso: string | null | undefined): string {
 
     return `${dia}/${mes}/${anio}`;
 }
+
+const FECHA_Y_HORA = new Intl.DateTimeFormat('es-AR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'America/Argentina/Buenos_Aires',
+});
+
+/**
+ * Un instante (ISO 8601 con zona, guardado en UTC) en hora de Buenos Aires:
+ * "21/11/26, 14:32". Para cuándo pasó algo, no para fechas de calendario.
+ */
+export function fechaYHora(iso: string | null | undefined): string {
+    return iso ? FECHA_Y_HORA.format(new Date(iso)) : '';
+}

@@ -40,6 +40,8 @@ El responsable de los datos es **{responsable}**. Contacto: **{contacto}**.
   solo para que puedas facturarles.
 - De tus facturas: el receptor, los ítems, los importes, las fechas y lo que
   contestó ARCA (el CAE o el motivo del rechazo).
+- De cada factura que mandás por email: a qué direcciones, el texto, cuándo y si
+  salió bien. Se guarda mientras exista la factura.
 
 **Técnicos**
 
@@ -57,6 +59,8 @@ El responsable de los datos es **{responsable}**. Contacto: **{contacto}**.
 
 - pedirle a ARCA la autorización de tus facturas y consultarlas;
 - armar el PDF de cada factura;
+- mandar tus facturas por email a las direcciones que vos indiques, cuando lo pedís
+  (con el botón o con la casilla «enviarla cuando ARCA la autorice»);
 - mostrarte tu información;
 - mandarte los mails de verificación y de recuperación de la contraseña.
 
@@ -74,7 +78,10 @@ El responsable de los datos es **{responsable}**. Contacto: **{contacto}**.
   exige la ley: los datos del comprobante y de su receptor. ARCA los trata según sus
   propias normas.
 - **Hostinger**, la empresa que aloja la app y su base de datos, y que manda los
-  mails. Procesa los datos solo para prestar ese servicio.
+  mails, incluidas las facturas que enviás por email. Procesa los datos solo para
+  prestar ese servicio.
+- **Quienes reciben tus facturas por email**: solo las direcciones que vos escribís.
+  Las respuestas van a tu email, no a la app.
 - **Google**, solo si elegís entrar con tu cuenta de Google. En ese caso Google nos
   pasa tu nombre, tu email y un identificador de tu cuenta, y sabe que entraste a
   FacturAR. No le mandamos nada de tus facturas ni de tus clientes.
@@ -87,7 +94,8 @@ en tu navegador (fuera de la pantalla de Google, si elegís entrar con Google): 
 - Mientras tengas la cuenta.
 - El registro de comunicaciones con ARCA, {retencion_llamadas} días.
 - **Al eliminar la cuenta se borra todo en el momento**: la cuenta, los datos
-  fiscales, el certificado y su clave, los clientes y las facturas. Lo único que puede
+  fiscales, el certificado y su clave, los clientes, las facturas y sus envíos por
+  email. Lo único que puede
   quedar por un tiempo son las copias de seguridad del hosting, que se renuevan solas.
 
 > **Antes de eliminar la cuenta, descargá tus datos.** Las facturas autorizadas

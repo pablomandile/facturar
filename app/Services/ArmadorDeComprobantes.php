@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\Arca\Ambiente;
 use App\Enums\Arca\Concepto;
 use App\Enums\Arca\CondicionIvaReceptor;
 use App\Enums\Arca\TipoComprobante;
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 class ArmadorDeComprobantes
 {
     /**
-     * @param  array{punto_de_venta_id: int, cliente_id?: int|null, concepto: int, fecha_emision: string, fecha_servicio_desde?: string|null, fecha_servicio_hasta?: string|null, fecha_vto_pago?: string|null, observaciones?: string|null, items: list<array{descripcion: string, cantidad: string, unidad?: string|null, precio_unitario: string}>}  $datos
+     * @param  array{punto_de_venta_id: int, cliente_id?: int|null, concepto: int, fecha_emision: string, fecha_servicio_desde?: string|null, fecha_servicio_hasta?: string|null, fecha_vto_pago?: string|null, observaciones?: string|null, enviar_al_autorizar?: bool, items: list<array{descripcion: string, cantidad: string, unidad?: string|null, precio_unitario: string}>}  $datos
      */
     public function guardar(Emisor $emisor, array $datos, ?Comprobante $comprobante = null): Comprobante
     {
@@ -44,6 +45,8 @@ class ArmadorDeComprobantes
                 'fecha_servicio_hasta' => $conServicios ? ($datos['fecha_servicio_hasta'] ?? null) : null,
                 'fecha_vto_pago' => $conServicios ? ($datos['fecha_vto_pago'] ?? null) : null,
                 'observaciones' => $datos['observaciones'] ?? null,
+                // Una factura de prueba no se le manda al cliente (EnviarAlAutorizar).
+                'enviar_al_autorizar' => ($datos['enviar_al_autorizar'] ?? false) && $emisor->ambiente === Ambiente::Produccion,
                 'estado' => EstadoComprobante::Borrador,
                 'numero' => null,
                 'respuesta_arca' => null,

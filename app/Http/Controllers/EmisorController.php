@@ -6,10 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\Arca\Ambiente;
 use App\Http\Requests\EmisorGuardarRequest;
+use App\Http\Requests\PlantillaEmailRequest;
 use App\Models\Certificado;
 use App\Models\Emisor;
 use App\Models\PuntoDeVenta;
 use App\Models\User;
+use App\Services\Facturas\TextoDelEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -50,6 +52,12 @@ class EmisorController extends Controller
                 'descripcion' => $punto->descripcion,
                 'activo' => $punto->activo,
             ])->all(),
+            'email' => [
+                'plantilla' => $emisor?->plantilla_email,
+                'por_defecto' => TextoDelEmail::POR_DEFECTO,
+                'marcadores' => TextoDelEmail::MARCADORES,
+                'maximo' => TextoDelEmail::PLANTILLA_MAXIMA,
+            ],
             'pasos' => [
                 'perfil' => $emisor !== null,
                 'certificado' => $vigente !== null,
@@ -70,6 +78,19 @@ class EmisorController extends Controller
             'type' => 'success',
             'message' => $esAlta ? 'Guardamos tus datos fiscales. Ahora vamos con el certificado.' : 'Se guardaron los cambios.',
         ]);
+
+        return to_route('emisor.edit');
+    }
+
+    /** El texto del email de las facturas (ver TextoDelEmail). */
+    public function plantillaEmail(PlantillaEmailRequest $peticion): RedirectResponse
+    {
+        $usuario = $peticion->user();
+        assert($usuario instanceof User && $usuario->emisor !== null);
+
+        $usuario->emisor->forceFill(['plantilla_email' => $peticion->plantilla()])->save();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Se guardó el texto del email.']);
 
         return to_route('emisor.edit');
     }

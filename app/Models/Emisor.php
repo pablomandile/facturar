@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarbonImmutable $inicio_actividades
  * @property Ambiente $ambiente
  * @property int|null $tope_consumidor_final
+ * @property string|null $plantilla_email
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at

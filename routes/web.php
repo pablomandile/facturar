@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Configuración fiscal: datos del emisor, certificado y puntos de venta.
     Route::get('emisor', [EmisorController::class, 'edit'])->name('emisor.edit');
     Route::put('emisor', [EmisorController::class, 'update'])->name('emisor.update');
+    Route::put('emisor/plantilla-email', [EmisorController::class, 'plantillaEmail'])->name('emisor.plantilla-email');
 
     Route::post('emisor/certificados', [CertificadoController::class, 'store'])->name('certificados.store');
     Route::get('emisor/certificados/{certificado}/csr', [CertificadoController::class, 'csr'])->name('certificados.csr');
@@ -80,6 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('comprobantes/{comprobante}', [ComprobanteController::class, 'update'])->name('comprobantes.update');
         Route::post('comprobantes/{comprobante}/emitir', [ComprobanteController::class, 'emitir'])->name('comprobantes.emitir');
         Route::get('comprobantes/{comprobante}/pdf', [ComprobantePdfController::class, 'show'])->name('comprobantes.pdf');
+        Route::post('comprobantes/{comprobante}/enviar', [ComprobanteController::class, 'enviar'])->middleware('throttle:envios')->name('comprobantes.enviar');
         Route::delete('comprobantes/{comprobante}', [ComprobanteController::class, 'destroy'])->name('comprobantes.destroy');
     });
 });

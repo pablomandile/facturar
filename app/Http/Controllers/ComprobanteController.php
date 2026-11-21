@@ -4,19 +4,24 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\Arca\Ambiente;
 use App\Enums\Arca\Concepto;
 use App\Enums\EstadoComprobante;
 use App\Exceptions\Arca\ExcepcionDeArca;
 use App\Http\Requests\ComprobanteGuardarRequest;
+use App\Http\Requests\EnviarComprobanteRequest;
 use App\Models\Cliente;
 use App\Models\Comprobante;
 use App\Models\ComprobanteItem;
 use App\Models\Emisor;
+use App\Models\EnvioDeComprobante;
 use App\Models\PuntoDeVenta;
 use App\Models\User;
 use App\Services\Arca\EmisorDeComprobantes;
 use App\Services\Arca\RelojFiscal;
 use App\Services\ArmadorDeComprobantes;
+use App\Services\Facturas\EnviadorDeFacturas;
+use App\Services\Facturas\TextoDelEmail;
 use App\Support\Dinero;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +39,8 @@ class ComprobanteController extends Controller
     public function __construct(
         private readonly ArmadorDeComprobantes $armador,
         private readonly EmisorDeComprobantes $emisorDeComprobantes,
+        private readonly EnviadorDeFacturas $enviador,
+        private readonly TextoDelEmail $textoDelEmail,
     ) {}
 
     public function index(Request $peticion): Response
@@ -128,7 +135,8 @@ class ComprobanteController extends Controller
     public function show(Comprobante $comprobante): Response
     {
         $this->authorize('view', $comprobante);
-        $comprobante->load(['items', 'puntoDeVenta', 'emisor']);
+        $comprobante->load(['items', 'puntoDeVenta', 'emisor.usuario', 'cliente', 'envios']);
+        $autorizado = $comprobante->estado === EstadoComprobante::Autorizado;
 
         return Inertia::render('comprobantes/Detalle', [
             'comprobante' => $this->detalle($comprobante),
@@ -136,7 +144,9 @@ class ComprobanteController extends Controller
                 'editar' => $comprobante->estado->esEditable(),
                 'emitir' => $comprobante->estado->esEmitible(),
                 'borrar' => $comprobante->estado->esEditable(),
+                'enviar' => $autorizado,
             ],
+            'email' => $autorizado ? $this->datosDelEmail($comprobante) : null,
         ]);
     }
 
@@ -249,6 +259,7 @@ class ComprobanteController extends Controller
             'fecha_servicio_hasta' => $comprobante->fecha_servicio_hasta?->toDateString(),
             'fecha_vto_pago' => $comprobante->fecha_vto_pago?->toDateString(),
             'observaciones' => $comprobante->observaciones,
+            'enviar_al_autorizar' => $comprobante->enviar_al_autorizar,
             'items' => array_values($comprobante->items->map(fn (ComprobanteItem $item): array => [
                 'descripcion' => $item->descripcion,
                 'cantidad' => rtrim(rtrim($item->cantidad, '0'), '.'),
@@ -292,6 +303,49 @@ class ComprobanteController extends Controller
      * Pide el CAE y avisa el resultado. El estado del comprobante ya quedó
      * guardado tanto si salió bien como si no: siempre se vuelve al detalle.
      */
+    public function enviar(EnviarComprobanteRequest $peticion, Comprobante $comprobante): RedirectResponse
+    {
+        $envio = $this->enviador->enviar(
+            $comprobante,
+            $peticion->destinatarios(),
+            $peticion->boolean('copia_a_mi'),
+            (string) $peticion->validated('texto'),
+        );
+
+        Inertia::flash('toast', $envio->enviado
+            ? ['type' => 'success', 'message' => 'Factura enviada a '.implode(', ', $envio->destinatarios).'.']
+            : ['type' => 'error', 'message' => 'No se pudo enviar el email. Probá de nuevo en un rato.']);
+
+        return to_route('comprobantes.show', $comprobante);
+    }
+
+    /**
+     * Lo que necesita el diálogo "Enviar por email" y el historial de envíos.
+     *
+     * @return array<string, mixed>
+     */
+    private function datosDelEmail(Comprobante $comprobante): array
+    {
+        $propio = $comprobante->emisor->usuario->email;
+        $deCliente = $comprobante->cliente === null ? null : $comprobante->cliente->email;
+        $homologacion = $comprobante->ambiente === Ambiente::Homologacion;
+
+        return [
+            // En homologación, solo a la cuenta: una factura de prueba no sale de acá.
+            'para' => $homologacion ? $propio : (string) $deCliente,
+            'solo_propio' => $homologacion,
+            'propio' => $propio,
+            'texto' => $this->textoDelEmail->para($comprobante),
+            'envios' => $comprobante->envios->map(fn (EnvioDeComprobante $envio): array => [
+                'id' => $envio->id,
+                'fecha' => $envio->created_at?->toIso8601String(),
+                'destinatarios' => $envio->destinatarios,
+                'con_copia' => $envio->con_copia,
+                'enviado' => $envio->enviado,
+            ])->all(),
+        ];
+    }
+
     private function emitirYAvisar(Comprobante $comprobante): RedirectResponse
     {
         // Hasta cuatro llamadas a ARCA en serie (ticket, último, CAE, consulta).
@@ -299,15 +353,30 @@ class ComprobanteController extends Controller
 
         try {
             $this->emisorDeComprobantes->emitir($comprobante);
-            Inertia::flash('toast', [
-                'type' => 'success',
-                'message' => "Factura {$comprobante->numeroCompleto()} autorizada por ARCA. CAE {$comprobante->cae}.",
-            ]);
+            Inertia::flash('toast', $this->avisoDeAutorizacion($comprobante));
         } catch (ExcepcionDeArca $e) {
             Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
         }
 
         return to_route('comprobantes.show', $comprobante);
+    }
+
+    /**
+     * El toast de una factura recién autorizada, con lo que pasó con el email
+     * si estaba la casilla de enviarla (EnviarAlAutorizar).
+     *
+     * @return array{type: string, message: string}
+     */
+    private function avisoDeAutorizacion(Comprobante $comprobante): array
+    {
+        $autorizada = "Factura {$comprobante->numeroCompleto()} autorizada por ARCA. CAE {$comprobante->cae}.";
+        $envio = $comprobante->enviar_al_autorizar ? $comprobante->envios()->first() : null;
+
+        return match (true) {
+            $envio === null => ['type' => 'success', 'message' => $autorizada],
+            $envio->enviado => ['type' => 'success', 'message' => "{$autorizada} Se envió a ".implode(', ', $envio->destinatarios).'.'],
+            default => ['type' => 'warning', 'message' => "{$autorizada} No se pudo enviar el email: reintentá desde el detalle."],
+        };
     }
 
     /** @return array<string, mixed> */
@@ -333,6 +402,8 @@ class ComprobanteController extends Controller
                     'etiqueta' => "{$c->nombre} · {$c->documentoFormateado()}",
                     // El formulario la completa con el período y el total.
                     'plantilla' => $c->plantilla_descripcion,
+                    // Para la casilla "Enviarla a … cuando ARCA la autorice".
+                    'email' => $c->email,
                 ])
                 ->all(),
             'conceptos' => array_map(
@@ -344,6 +415,7 @@ class ComprobanteController extends Controller
             'finDeMes' => $hoy->endOfMonth()->toDateString(),
             'topeConsumidorFinal' => $emisor->topeConsumidorFinal(),
             'ambiente' => $emisor->ambiente->etiqueta(),
+            'esProduccion' => $emisor->ambiente === Ambiente::Produccion,
         ];
     }
 

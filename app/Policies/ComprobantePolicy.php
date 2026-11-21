@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\EstadoComprobante;
 use App\Models\Comprobante;
 use App\Models\User;
 
@@ -27,6 +28,12 @@ class ComprobantePolicy
     public function emitir(User $usuario, Comprobante $comprobante): bool
     {
         return $this->view($usuario, $comprobante) && $comprobante->estado->esEmitible();
+    }
+
+    /** Por email se manda solo lo que ARCA ya autorizó. */
+    public function enviar(User $usuario, Comprobante $comprobante): bool
+    {
+        return $this->view($usuario, $comprobante) && $comprobante->estado === EstadoComprobante::Autorizado;
     }
 
     public function delete(User $usuario, Comprobante $comprobante): bool

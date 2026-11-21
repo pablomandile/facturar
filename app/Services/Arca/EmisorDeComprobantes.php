@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Arca;
 
 use App\Enums\EstadoComprobante;
+use App\Events\ComprobanteAutorizado;
 use App\Exceptions\Arca\ComprobanteNoEmitible;
 use App\Exceptions\Arca\ComprobanteRechazado;
 use App\Exceptions\Arca\EmisionBloqueada;
@@ -21,6 +22,7 @@ use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -65,21 +67,25 @@ class EmisorDeComprobantes
         $this->validar($comprobante);
         $this->tickets->obtener($comprobante->emisor);
 
-        $lock = $this->lock($comprobante);
+        // ComprobanteAutorizado sale recién con el lock liberado: el email
+        // (EnviarAlAutorizar) no tiene por qué retener el punto de venta.
+        return Event::defer(function () use ($comprobante): Comprobante {
+            $lock = $this->lock($comprobante);
 
-        try {
-            $lock->block((int) config('arca.espera_lock_emision_segundos'));
-        } catch (LockTimeoutException) {
-            throw EmisionBloqueada::enCurso();
-        }
+            try {
+                $lock->block((int) config('arca.espera_lock_emision_segundos'));
+            } catch (LockTimeoutException) {
+                throw EmisionBloqueada::enCurso();
+            }
 
-        try {
-            $this->sinPendientes($comprobante);
+            try {
+                $this->sinPendientes($comprobante);
 
-            return $this->enviar($comprobante, reintentarSiNoEsElProximo: true);
-        } finally {
-            $lock->release();
-        }
+                return $this->enviar($comprobante, reintentarSiNoEsElProximo: true);
+            } finally {
+                $lock->release();
+            }
+        }, [ComprobanteAutorizado::class]);
     }
 
     /**
@@ -90,29 +96,32 @@ class EmisorDeComprobantes
     public function reconciliar(Comprobante $comprobante): ?EstadoComprobante
     {
         $comprobante->loadMissing(['emisor', 'puntoDeVenta']);
-        $lock = $this->lock($comprobante);
 
-        if (! $lock->get()) {
-            return null;
-        }
+        return Event::defer(function () use ($comprobante): ?EstadoComprobante {
+            $lock = $this->lock($comprobante);
 
-        try {
-            $comprobante->refresh();
-
-            if ($comprobante->estado !== EstadoComprobante::Pendiente) {
-                return $comprobante->estado;
+            if (! $lock->get()) {
+                return null;
             }
 
-            $this->resolverConConsulta($comprobante);
+            try {
+                $comprobante->refresh();
 
-            return $comprobante->estado;
-        } catch (ExcepcionDeArca $e) {
-            Log::warning("No se pudo reconciliar el comprobante {$comprobante->id}: {$e->getMessage()}");
+                if ($comprobante->estado !== EstadoComprobante::Pendiente) {
+                    return $comprobante->estado;
+                }
 
-            return null;
-        } finally {
-            $lock->release();
-        }
+                $this->resolverConConsulta($comprobante);
+
+                return $comprobante->estado;
+            } catch (ExcepcionDeArca $e) {
+                Log::warning("No se pudo reconciliar el comprobante {$comprobante->id}: {$e->getMessage()}");
+
+                return null;
+            } finally {
+                $lock->release();
+            }
+        }, [ComprobanteAutorizado::class]);
     }
 
     private function validar(Comprobante $comprobante): void
@@ -311,6 +320,10 @@ class EmisorDeComprobantes
                 'eventos' => self::comoArray($respuesta->eventos),
             ],
         ])->save();
+
+        // El envío por email cuelga de acá (EnviarAlAutorizar). Un fallo del
+        // correo no lanza: la factura ya quedó autorizada.
+        ComprobanteAutorizado::dispatch($comprobante);
 
         return $comprobante;
     }

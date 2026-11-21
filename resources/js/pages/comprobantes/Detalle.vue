@@ -2,15 +2,23 @@
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
 import ComprobantePdfController from '@/actions/App/Http/Controllers/ComprobantePdfController';
+import EnviarPorEmail from '@/components/comprobantes/EnviarPorEmail.vue';
 import EstadoBadge from '@/components/comprobantes/EstadoBadge.vue';
 import { Button } from '@/components/ui/button';
 import Seccion from '@/components/Seccion.vue';
-import { fechaCorta } from '@/lib/fechas';
-import type { ComprobanteDetalle } from '@/types/comprobantes';
+import { fechaCorta, fechaYHora } from '@/lib/fechas';
+import type { ComprobanteDetalle, EmailDeFactura } from '@/types/comprobantes';
 
 const props = defineProps<{
     comprobante: ComprobanteDetalle;
-    puede: { editar: boolean; emitir: boolean; borrar: boolean };
+    puede: {
+        editar: boolean;
+        emitir: boolean;
+        borrar: boolean;
+        enviar: boolean;
+    };
+    /** Solo en una autorizada: el diálogo de envío y el historial. */
+    email: EmailDeFactura | null;
 }>();
 
 defineOptions({
@@ -152,6 +160,44 @@ function borrar(): void {
             </p>
         </Seccion>
 
+        <Seccion
+            v-if="email && email.envios.length"
+            titulo="Envíos por email"
+            clase-cuerpo="p-0 sm:p-0"
+        >
+            <ul
+                class="divide-y text-sm [&>*:nth-child(even)]:bg-section-tint/50"
+                data-test="envios"
+            >
+                <li
+                    v-for="envio in email.envios"
+                    :key="envio.id"
+                    class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5"
+                >
+                    <span
+                        class="rounded-full px-2 py-0.5 text-xs font-medium"
+                        :class="
+                            envio.enviado
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
+                        "
+                        >{{ envio.enviado ? 'Enviada' : 'No salió' }}</span
+                    >
+                    <span class="min-w-0 flex-1 wrap-anywhere">
+                        {{ envio.destinatarios.join(', ') }}
+                        <span
+                            v-if="envio.con_copia"
+                            class="text-muted-foreground"
+                            >(con copia a vos)</span
+                        >
+                    </span>
+                    <span class="text-muted-foreground tabular-nums">{{
+                        fechaYHora(envio.fecha)
+                    }}</span>
+                </li>
+            </ul>
+        </Seccion>
+
         <div class="flex flex-wrap gap-2">
             <Button v-if="comprobante.estado === 'autorizado'" as-child>
                 <a
@@ -161,6 +207,11 @@ function borrar(): void {
                     >Descargar PDF</a
                 >
             </Button>
+            <EnviarPorEmail
+                v-if="puede.enviar && email"
+                :comprobante-id="comprobante.id"
+                :email="email"
+            />
             <Form
                 v-if="puede.emitir"
                 v-bind="ComprobanteController.emitir.form(comprobante.id)"

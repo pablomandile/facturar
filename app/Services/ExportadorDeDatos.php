@@ -9,6 +9,7 @@ use App\Models\Certificado;
 use App\Models\Cliente;
 use App\Models\Comprobante;
 use App\Models\ComprobanteItem;
+use App\Models\EnvioDeComprobante;
 use App\Models\PuntoDeVenta;
 use App\Models\User;
 use App\Services\Facturas\GeneradorDePdf;
@@ -92,6 +93,7 @@ class ExportadorDeDatos
                 'ingresos_brutos' => $emisor->ingresos_brutos,
                 'inicio_actividades' => $emisor->inicio_actividades->toDateString(),
                 'ambiente' => $emisor->ambiente->value,
+                'texto_del_email' => $emisor->plantilla_email,
             ],
             'certificados' => $emisor === null ? [] : $emisor->certificados()->orderBy('id')->get()->map(fn (Certificado $c): array => [
                 'alias' => $c->alias,
@@ -117,7 +119,7 @@ class ExportadorDeDatos
                 'descripcion_habitual' => $c->plantilla_descripcion,
             ])->all(),
             'comprobantes' => $emisor === null ? [] : Comprobante::query()
-                ->with(['puntoDeVenta', 'items'])
+                ->with(['puntoDeVenta', 'items', 'envios'])
                 ->where('emisor_id', $emisor->id)
                 ->orderBy('id')
                 ->get()
@@ -152,6 +154,14 @@ class ExportadorDeDatos
                     'cae_vencimiento' => $c->cae_vencimiento?->toDateString(),
                     'observaciones' => $c->observaciones,
                     'respuesta_arca' => $c->respuesta_arca,
+                    'envios_por_email' => $c->envios->map(fn (EnvioDeComprobante $e): array => [
+                        'fecha' => $e->created_at?->toIso8601String(),
+                        'destinatarios' => $e->destinatarios,
+                        'con_copia' => $e->con_copia,
+                        'texto' => $e->texto,
+                        'enviado' => $e->enviado,
+                        'error' => $e->error,
+                    ])->all(),
                 ])->all(),
         ];
     }

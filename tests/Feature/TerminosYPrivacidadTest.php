@@ -148,14 +148,15 @@ describe('lo que los textos prometen', function () {
         Certificado::factory()->vigente()->for($emisor)->create();
         $punto = PuntoDeVenta::factory()->for($emisor)->create();
         Cliente::factory()->for($emisor)->create();
-        Comprobante::factory()->paraPunto($punto)->autorizado(1)->create();
+        Comprobante::factory()->paraPunto($punto)->autorizado(1)->create()
+            ->envios()->create(['destinatarios' => ['pagos@cliente.test'], 'texto' => 'Hola', 'enviado' => true]);
         TicketDeAcceso::query()->create(['emisor_id' => $emisor->id, 'ambiente' => 'homologacion', 'servicio' => 'wsfe', 'token' => 't', 'sign' => 's']);
         LlamadaArca::query()->create(['emisor_id' => $emisor->id, 'ambiente' => 'homologacion', 'servicio' => 'wsfe', 'metodo' => 'FEDummy', 'resultado' => 'ok', 'duracion_ms' => 1]);
         $usuario = $emisor->usuario;
 
         $this->actingAs($usuario)->delete(route('profile.destroy'), ['password' => 'password'])->assertRedirect('/');
 
-        foreach (['users', 'emisores', 'certificados', 'puntos_de_venta', 'clientes', 'comprobantes', 'comprobante_items', 'tickets_de_acceso', 'llamadas_arca'] as $tabla) {
+        foreach (['users', 'emisores', 'certificados', 'puntos_de_venta', 'clientes', 'comprobantes', 'comprobante_items', 'tickets_de_acceso', 'llamadas_arca', 'envios_de_comprobantes'] as $tabla) {
             expect(DB::table($tabla)->count())->toBe(0, "Quedaron filas en {$tabla}");
         }
     });

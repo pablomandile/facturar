@@ -58,6 +58,7 @@ use LogicException;
  * @property CarbonImmutable|null $enviado_en
  * @property CarbonImmutable|null $autorizado_en
  * @property string|null $observaciones
+ * @property bool $enviar_al_autorizar
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
@@ -65,6 +66,7 @@ use LogicException;
  * @property-read PuntoDeVenta $puntoDeVenta
  * @property-read Cliente|null $cliente
  * @property-read Collection<int, ComprobanteItem> $items
+ * @property-read Collection<int, EnvioDeComprobante> $envios
  */
 class Comprobante extends Model
 {
@@ -86,6 +88,7 @@ class Comprobante extends Model
         'importe_tributos' => 0,
         'intentos' => 0,
         'estado' => 'borrador',
+        'enviar_al_autorizar' => false,
     ];
 
     protected function casts(): array
@@ -110,6 +113,7 @@ class Comprobante extends Model
             'intentos' => 'integer',
             'enviado_en' => 'datetime',
             'autorizado_en' => 'datetime',
+            'enviar_al_autorizar' => 'boolean',
         ];
     }
 
@@ -150,6 +154,12 @@ class Comprobante extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ComprobanteItem::class)->orderBy('orden');
+    }
+
+    /** @return HasMany<EnvioDeComprobante, $this> */
+    public function envios(): HasMany
+    {
+        return $this->hasMany(EnvioDeComprobante::class)->latest('id');
     }
 
     /** Totales desde los ítems. Factura C: sin IVA discriminado, sin tributos en la v1. */

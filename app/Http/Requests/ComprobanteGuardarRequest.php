@@ -68,6 +68,8 @@ class ComprobanteGuardarRequest extends FormRequest
             'fecha_servicio_hasta' => [Rule::requiredIf($servicios), 'nullable', 'date_format:Y-m-d', 'after_or_equal:fecha_servicio_desde'],
             'fecha_vto_pago' => [Rule::requiredIf($servicios), 'nullable', 'date_format:Y-m-d', 'after_or_equal:fecha_emision'],
             'observaciones' => ['nullable', 'string', 'max:500'],
+            // La casilla "Enviarla al cliente cuando ARCA la autorice".
+            'enviar_al_autorizar' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.descripcion' => ['required', 'string', 'max:'.ComprobanteItem::DESCRIPCION_MAXIMA],
             'items.*.cantidad' => ['required', 'numeric', 'gt:0', 'max:99999999', 'decimal:0,4'],
@@ -133,7 +135,7 @@ class ComprobanteGuardarRequest extends FormRequest
     /**
      * Lo validado, con los tipos que espera ArmadorDeComprobantes.
      *
-     * @return array{punto_de_venta_id: int, cliente_id: int|null, concepto: int, fecha_emision: string, fecha_servicio_desde: string|null, fecha_servicio_hasta: string|null, fecha_vto_pago: string|null, observaciones: string|null, items: list<array{descripcion: string, cantidad: string, unidad: string|null, precio_unitario: string}>}
+     * @return array{punto_de_venta_id: int, cliente_id: int|null, concepto: int, fecha_emision: string, fecha_servicio_desde: string|null, fecha_servicio_hasta: string|null, fecha_vto_pago: string|null, observaciones: string|null, enviar_al_autorizar: bool, items: list<array{descripcion: string, cantidad: string, unidad: string|null, precio_unitario: string}>}
      */
     public function datos(): array
     {
@@ -149,6 +151,7 @@ class ComprobanteGuardarRequest extends FormRequest
             'fecha_servicio_hasta' => $texto('fecha_servicio_hasta'),
             'fecha_vto_pago' => $texto('fecha_vto_pago'),
             'observaciones' => $texto('observaciones'),
+            'enviar_al_autorizar' => (bool) ($validado['enviar_al_autorizar'] ?? false),
             'items' => array_values(array_map(fn (array $item): array => [
                 // El textarea manda \r\n: se guarda con \n, como lo escribe el PDF.
                 'descripcion' => trim(str_replace("\r\n", "\n", (string) $item['descripcion'])),

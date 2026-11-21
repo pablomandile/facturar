@@ -164,6 +164,26 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   guarda nada**. Corre el período tantos meses como pasaron desde la emisión original (un
   mes completo sigue siendo un mes completo) y conserva los días de plazo del vencimiento.
 
+### Envío por email
+
+- **`EnviadorDeFacturas` es el único que manda** y registra cada intento en
+  `envios_de_comprobantes`, salga bien o mal. Un fallo del SMTP **no lanza**: queda con su
+  error y la factura sigue autorizada. Adjunta el mismo PDF de `GeneradorDePdf` (una sola
+  hoja, la ORIGINAL).
+- El texto es la plantilla del emisor (`emisores.plantilla_email`, vacía = `TextoDelEmail::POR_DEFECTO`)
+  y **se completa en el servidor** (`TextoDelEmail`), no en el front como la descripción: el envío
+  automático no pasa por ninguna pantalla. Sin `{importe_en_letras}` (vive en TS); va en el PDF.
+- Sale de `MAIL_FROM_ADDRESS` con el nombre "{razón social} vía FacturAR" y **Reply-To al email
+  de la cuenta**: las respuestas le llegan al emisor, no a la app.
+- **Homologación: solo al email de la cuenta.** Lo frenan el FormRequest y el enviador, y la
+  casilla de enviar al autorizar no se guarda (`ArmadorDeComprobantes`).
+- La casilla "Enviarla cuando ARCA la autorice" queda en `comprobantes.enviar_al_autorizar`
+  porque la autorización puede llegar después (reconciliador). `marcarAutorizado` dispara
+  `ComprobanteAutorizado` y lo escucha `EnviarAlAutorizar`. `emitir` y `reconciliar` van
+  dentro de `Event::defer`: el email sale **con el lock del punto de venta ya liberado**.
+- Tope de 20 envíos por hora por cuenta (`throttle:envios`) y timeout de SMTP de 15 s
+  (`MAIL_TIMEOUT`): sin tope, un SMTP colgado retenía el request 60 s.
+
 ### PDF y QR
 
 - El PDF se genera al vuelo y solo para facturas autorizadas: todo lo que lleva está en la base
@@ -191,6 +211,8 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
       `datos.json` y los PDF. **Nunca lleva la clave privada** (lo prueba el mismo test).
     - el registro de ARCA se borra a los N días: `config('arca.retencion_llamadas_dias')`,
       que es lo mismo que lee el texto.
+    - «mandar tus facturas por email a las direcciones que indiques»: el envío es siempre a
+      pedido (botón o casilla), y el historial entra en la descarga y se borra con la cuenta.
     - «no hay terceros en el navegador»: las fuentes las sirve la app (plugin de fuentes de
       Vite, sin pedido a Bunny en tiempo de ejecución).
 - `AceptoTerminos` va en todo el grupo `web`; las rutas exentas están en
@@ -310,6 +332,9 @@ descarga de datos, aviso y página de cookies.
 
 Desplegado en `https://facturar.bambudev.com.ar` (17/11/2026): base, correo, cron de
 `schedule:run` y `arca:diagnostico` en orden. Ingreso con Google.
+
+Envío de la factura por email (botón en el detalle, casilla al emitir, plantilla con
+marcadores en Datos fiscales).
 
 Sigue: el certificado de producción y la primera factura real.
 

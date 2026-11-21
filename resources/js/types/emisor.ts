@@ -35,6 +35,14 @@ export type PuntoDeVenta = {
     activo: boolean;
 };
 
+/** El texto del email de las facturas, con sus marcadores (TextoDelEmail). */
+export type PlantillaEmail = {
+    plantilla: string | null;
+    por_defecto: string;
+    marcadores: { marcador: string; ejemplo: string }[];
+    maximo: number;
+};
+
 export type PasosConfiguracion = {
     perfil: boolean;
     certificado: boolean;
