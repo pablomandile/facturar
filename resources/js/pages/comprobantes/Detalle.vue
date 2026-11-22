@@ -133,20 +133,26 @@ function borrar(): void {
             </dl>
 
             <ul class="divide-y border-y">
+                <!--
+                    En el celular, la descripción a todo el ancho y debajo la
+                    cantidad y el importe: en una sola fila, la descripción
+                    quedaba en una columna finita, cortada sílaba por sílaba.
+                -->
                 <li
                     v-for="(item, i) in comprobante.items"
                     :key="i"
-                    class="flex flex-wrap justify-between gap-x-4 py-2"
+                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 py-2 sm:grid-cols-[1fr_auto_7rem]"
+                    data-test="item-detalle"
                 >
                     <span
-                        class="min-w-0 flex-1 wrap-break-word whitespace-pre-line"
+                        class="col-span-2 min-w-0 wrap-break-word whitespace-pre-line sm:col-span-1"
                         >{{ item.descripcion }}</span
                     >
                     <span class="text-muted-foreground tabular-nums"
                         >{{ item.cantidad }} × $
                         {{ item.precio_unitario }}</span
                     >
-                    <span class="w-28 text-right tabular-nums"
+                    <span class="text-right tabular-nums"
                         >$ {{ item.importe }}</span
                     >
                 </li>
@@ -191,9 +197,11 @@ function borrar(): void {
                             >(con copia a vos)</span
                         >
                     </span>
-                    <span class="text-muted-foreground tabular-nums">{{
-                        fechaYHora(envio.fecha)
-                    }}</span>
+                    <!-- En el celular, en su línea: si no, partía el email al medio. -->
+                    <span
+                        class="basis-full text-xs text-muted-foreground tabular-nums sm:basis-auto sm:text-sm"
+                        >{{ fechaYHora(envio.fecha) }}</span
+                    >
                 </li>
             </ul>
         </Seccion>

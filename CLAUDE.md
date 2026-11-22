@@ -245,6 +245,22 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 - Quien activó el 2FA pasa por el desafío de Fortify también al entrar con Google.
 - `google_id` está en `Hidden`: no viaja al navegador.
 
+### Demo del portfolio
+
+- `facturar.pablomandile.com.ar` es esta misma app con `APP_DEMO=true` (`config/demo.php`).
+  Apagado, nada de esto actúa: la productiva no se entera.
+- **ARCA simulada**: `AppServiceProvider` resuelve `FabricaDeTransportesDemo`, que contesta como
+  SoapClient sin salir a la red (CAE inventado, último autorizado sacado de la base). La emisora
+  es de **homologación**: todo PDF dice "sin validez fiscal" y no hay facturas falsas que parezcan
+  reales.
+- `ProtegerDemo` (al final del grupo `web`) bloquea la cuenta, 2FA y passkeys (dejarían afuera a
+  todos), los datos fiscales, el certificado y los puntos de venta. Facturar, clientes y el
+  texto del email, sí. Los mails van al log por el `.env`.
+- `DemoSeeder` **no usa factories** (Faker no está con `--no-dev`) y siembra con fechas relativas
+  a hoy; `demo:reset` lo corre de noche (`routes/console.php`) y se niega sin el flag.
+- `portfolio.json` es la ficha del portfolio (skill `subir-al-portfolio`): sus capturas salen de
+  la demo, y `/comprobantes/9` es la factura del Ministerio con su envío.
+
 ### Tests de ARCA
 
 - `tests/TestCase.php` registra una fábrica de transportes que **explota** si un test llega
