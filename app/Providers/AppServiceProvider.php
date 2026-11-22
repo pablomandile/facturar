@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Arca\FabricaDeTransportes;
+use App\Services\Arca\Demo\FabricaDeTransportesDemo;
 use App\Services\Arca\FabricaDeTransportesSoap;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -20,8 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // El cable hacia ARCA. Los tests lo reemplazan por uno falso.
-        $this->app->bind(FabricaDeTransportes::class, FabricaDeTransportesSoap::class);
+        // El cable hacia ARCA. Los tests lo reemplazan por uno falso, y la demo
+        // (APP_DEMO) por una ARCA simulada que no sale a la red.
+        $this->app->bind(FabricaDeTransportes::class, fn () => config('demo.enabled')
+            ? new FabricaDeTransportesDemo
+            : new FabricaDeTransportesSoap);
     }
 
     /**

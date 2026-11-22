@@ -5,6 +5,7 @@ use App\Http\Middleware\ConfirmarClaveSiLaTiene;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HandleTamanioTexto;
+use App\Http\Middleware\ProtegerDemo;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -32,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             // Al final: necesita la sesión y el usuario ya resueltos.
             AceptoTerminos::class,
+            // Solo con APP_DEMO: la cuenta compartida y lo fiscal no se cambian.
+            ProtegerDemo::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -53,7 +53,10 @@ const ventajas = [
                         <Link :href="login()">Iniciar sesión</Link>
                     </Button>
                     <Button as-child>
-                        <Link :href="register()">Crear cuenta</Link>
+                        <Link v-if="$page.props.demo" :href="login()"
+                            >Probar la demo</Link
+                        >
+                        <Link v-else :href="register()">Crear cuenta</Link>
                     </Button>
                 </template>
             </nav>
@@ -78,7 +81,10 @@ const ventajas = [
                     </p>
                     <div v-if="!$page.props.auth.user" class="flex gap-2 pt-2">
                         <Button size="lg" as-child>
-                            <Link :href="register()">Empezar</Link>
+                            <Link v-if="$page.props.demo" :href="login()"
+                                >Probar la demo</Link
+                            >
+                            <Link v-else :href="register()">Empezar</Link>
                         </Button>
                         <Button size="lg" variant="outline" as-child>
                             <Link :href="login()">Ya tengo cuenta</Link>

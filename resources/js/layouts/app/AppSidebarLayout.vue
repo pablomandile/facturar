@@ -24,6 +24,16 @@ withDefaults(defineProps<Props>(), {
         <AppSidebar />
         <AppContent variant="sidebar" class="min-w-0 overflow-x-clip">
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
+            <!-- Solo en la demo: que nadie cargue datos reales en una cuenta compartida. -->
+            <p
+                v-if="$page.props.demo"
+                class="border-b bg-section-tint px-4 py-2 text-sm text-pretty md:px-6"
+                data-test="franja-demo"
+            >
+                Estás en la demo: los datos son inventados, ARCA está simulada
+                (las facturas no tienen validez fiscal), los mails no salen y
+                todo se borra cada noche.
+            </p>
             <slot />
         </AppContent>
         <!--

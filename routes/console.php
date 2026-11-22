@@ -17,3 +17,7 @@ Schedule::command('arca:reconciliar-pendientes')->everyFiveMinutes()->withoutOve
 
 // El registro de llamadas a ARCA se guarda 90 días (config/arca.php).
 Schedule::command('model:prune', ['--model' => [LlamadaArca::class]])->dailyAt('03:30');
+
+// Solo en la demo (APP_DEMO=true): la deja como nueva todas las noches, a las
+// 04:00 de Argentina (la app corre en UTC).
+Schedule::command('demo:reset')->dailyAt('07:00')->when(fn (): bool => (bool) config('demo.enabled'));

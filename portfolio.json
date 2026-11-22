@@ -1,0 +1,28 @@
+{
+    "slug": "facturar",
+    "title": "FacturAR",
+    "description": {
+        "es": "FacturAR es una app web para que los monotributistas emitan Factura C directamente contra los web services de ARCA (ex AFIP), sin intermediarios pagos. Cada cuenta genera su clave y el pedido de certificado, carga sus puntos de venta y sus clientes, obtiene el CAE en segundos y descarga el PDF con el QR que exige ARCA, o lo manda por email al cliente con un texto propio.\n\nLa integración con WSAA y WSFEv1 es propia, sobre SOAP y OpenSSL: numeración bajo lock, recuperación ante cortes de conexión y tests sin red contra respuestas grabadas de ARCA. Es instalable como PWA y se usa cómodo desde el celular.",
+        "en": "FacturAR is a web app that lets Argentine monotributistas (simplified-regime taxpayers) issue type C invoices directly against the ARCA (formerly AFIP) web services, with no paid middlemen. Each account generates its own key and certificate request, sets up its points of sale and clients, gets the CAE authorization code in seconds, and downloads the PDF with the QR code ARCA requires, or emails it to the client with its own message.\n\nThe WSAA and WSFEv1 integration is built in-house on SOAP and OpenSSL: numbering under a lock, recovery from dropped connections, and offline tests against recorded ARCA responses. It installs as a PWA and works comfortably on a phone."
+    },
+    "repo_url": "https://github.com/pablomandile/facturar",
+    "technologies": ["Laravel", "PHP", "Vue.js", "Tailwind CSS", "MySQL", "PWA", "Claude Code", "Git · GitHub · GitLab"],
+    "logo": "public/icons/icon-512.png",
+    "demo": {
+        "url": "https://facturar.pablomandile.com.ar",
+        "login_path": "/login",
+        "demo_button": "Entrar a la demo",
+        "email": null,
+        "password": null,
+        "expect": "directo contra ARCA"
+    },
+    "screenshots": [
+        { "name": "panel", "path": "/dashboard" },
+        { "name": "facturas", "path": "/comprobantes" },
+        { "name": "factura", "path": "/comprobantes/9" },
+        { "name": "nueva-factura", "path": "/comprobantes/nuevo" },
+        { "name": "clientes", "path": "/clientes" }
+    ],
+    "mobile": true,
+    "ocultar": ["[data-test=\"franja-demo\"]", "[data-sonner-toaster]"]
+}

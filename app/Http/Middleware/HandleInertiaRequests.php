@@ -86,6 +86,10 @@ class HandleInertiaRequests extends Middleware
             // Lo resolvió HandleTamanioTexto (cuenta → cookie → default).
             'tamanioTexto' => fn (): string => View::shared('tamanioTexto', TamanioTexto::porDefecto())->value,
             'tamaniosTexto' => fn (): array => TamanioTexto::opciones(),
+            // Datos de acceso de la demo (solo con APP_DEMO=true), para el login y la franja.
+            'demo' => config('demo.enabled')
+                ? ['email' => config('demo.email'), 'password' => config('demo.password')]
+                : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
