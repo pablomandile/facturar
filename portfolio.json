@@ -6,7 +6,16 @@
         "en": "FacturAR is a web app that lets Argentine monotributistas (simplified-regime taxpayers) issue type C invoices directly against the ARCA (formerly AFIP) web services, with no paid middlemen. Each account generates its own key and certificate request, sets up its points of sale and clients, gets the CAE authorization code in seconds, and downloads the PDF with the QR code ARCA requires, or emails it to the client with its own message.\n\nThe WSAA and WSFEv1 integration is built in-house on SOAP and OpenSSL: numbering under a lock, recovery from dropped connections, and offline tests against recorded ARCA responses. It installs as a PWA and works comfortably on a phone."
     },
     "repo_url": "https://github.com/pablomandile/facturar",
-    "technologies": ["Laravel", "PHP", "Vue.js", "Tailwind CSS", "MySQL", "PWA", "Claude Code", "Git · GitHub · GitLab"],
+    "technologies": [
+        "Laravel",
+        "PHP",
+        "Vue.js",
+        "Tailwind CSS",
+        "MySQL",
+        "PWA",
+        "Claude Code",
+        "Git · GitHub · GitLab"
+    ],
     "logo": "public/icons/icon-512.png",
     "demo": {
         "url": "https://facturar.pablomandile.com.ar",
@@ -14,13 +23,13 @@
         "demo_button": "Entrar a la demo",
         "email": null,
         "password": null,
-        "expect": "directo contra ARCA"
+        "expect": "FacturAR"
     },
     "screenshots": [
         { "name": "panel", "path": "/dashboard" },
         { "name": "facturas", "path": "/comprobantes" },
         { "name": "factura", "path": "/comprobantes/9" },
-        { "name": "nueva-factura", "path": "/comprobantes/nuevo" },
+        { "name": "duplicar", "path": "/comprobantes/9/duplicar" },
         { "name": "clientes", "path": "/clientes" }
     ],
     "mobile": true,

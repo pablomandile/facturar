@@ -188,19 +188,29 @@ const titulos: Record<keyof PasosConfiguracion, string> = {
                             :href="ComprobanteController.show(fila.id)"
                             class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 hover:bg-accent"
                         >
-                            <span class="min-w-0 flex-1 truncate">{{
-                                fila.receptor
-                            }}</span>
-                            <span
-                                class="font-mono text-xs text-muted-foreground"
-                                >{{ fila.numero }} ·
-                                {{ fechaCorta(fila.fecha) }}</span
-                            >
-                            <span class="tabular-nums">$ {{ fila.total }}</span>
-                            <EstadoBadge
-                                :estado="fila.estado"
-                                :etiqueta="fila.estado_etiqueta"
-                            />
+                            <!--
+                                El nombre arriba y el número abajo: en una sola
+                                línea, a 390 px el nombre quedaba en "M…".
+                            -->
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate">{{
+                                    fila.receptor
+                                }}</span>
+                                <span
+                                    class="block font-mono text-xs text-muted-foreground"
+                                    >{{ fila.numero }} ·
+                                    {{ fechaCorta(fila.fecha) }}</span
+                                >
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <span class="tabular-nums"
+                                    >$ {{ fila.total }}</span
+                                >
+                                <EstadoBadge
+                                    :estado="fila.estado"
+                                    :etiqueta="fila.estado_etiqueta"
+                                />
+                            </span>
                         </Link>
                     </li>
                 </ul>
