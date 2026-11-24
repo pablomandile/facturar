@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * Quién factura: el perfil fiscal de una cuenta. Todo lo que es del emisor
@@ -25,18 +26,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $usuario_id
  * @property string $cuit
  * @property string $razon_social
+ * @property string|null $nombre_archivos Comienzo del nombre del PDF (APELLIDO_NOMBRE)
  * @property string $domicilio_fiscal
  * @property string|null $ingresos_brutos
  * @property CarbonImmutable $inicio_actividades
  * @property Ambiente $ambiente
  * @property int|null $tope_consumidor_final
  * @property string|null $plantilla_email
+ * @property string|null $asunto_email
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  * @property-read User $usuario
  */
-#[Fillable(['cuit', 'razon_social', 'domicilio_fiscal', 'ingresos_brutos', 'inicio_actividades', 'ambiente'])]
+#[Fillable(['cuit', 'razon_social', 'nombre_archivos', 'domicilio_fiscal', 'ingresos_brutos', 'inicio_actividades', 'ambiente'])]
 class Emisor extends Model
 {
     /** @use HasFactory<EmisorFactory> */
@@ -103,5 +106,33 @@ class Emisor extends Model
     public function cuitFormateado(): string
     {
         return Cuit::formatear($this->cuit);
+    }
+
+    /**
+     * Cómo empieza el nombre del PDF de cada factura: "MANDILE_PABLO". El que
+     * eligió la persona, o la razón social dada vuelta (la última palabra
+     * primero), que es lo que sirve para una persona con un solo apellido.
+     */
+    public function nombreParaArchivos(): string
+    {
+        return self::normalizarNombreDeArchivo($this->nombre_archivos ?? '') ?: self::nombreDeArchivoSugerido($this->razon_social);
+    }
+
+    /** "Pablo Mandile" → "MANDILE_PABLO". */
+    public static function nombreDeArchivoSugerido(string $razonSocial): string
+    {
+        $palabras = preg_split('/\s+/', trim($razonSocial)) ?: [];
+
+        if (count($palabras) > 1) {
+            array_unshift($palabras, array_pop($palabras));
+        }
+
+        return self::normalizarNombreDeArchivo(implode(' ', $palabras));
+    }
+
+    /** Mayúsculas, sin tildes ni eñes, y "_" en lugar de todo lo demás: "Muñoz Peña" → "MUNOZ_PENA". */
+    public static function normalizarNombreDeArchivo(string $nombre): string
+    {
+        return trim((string) preg_replace('/[^A-Z0-9]+/', '_', mb_strtoupper(Str::ascii($nombre))), '_');
     }
 }

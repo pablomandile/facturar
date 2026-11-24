@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $comprobante_id
  * @property list<string> $destinatarios
  * @property bool $con_copia
+ * @property string|null $asunto
  * @property string $texto
  * @property bool $enviado
  * @property string|null $error

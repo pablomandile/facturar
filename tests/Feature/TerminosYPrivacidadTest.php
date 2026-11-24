@@ -10,6 +10,7 @@ use App\Models\LlamadaArca;
 use App\Models\PuntoDeVenta;
 use App\Models\TicketDeAcceso;
 use App\Models\User;
+use App\Services\Facturas\GeneradorDePdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -180,7 +181,7 @@ describe('lo que los textos prometen', function () {
         expect($datos['emisor']['cuit'])->toBe($emisor->cuit)
             ->and($datos['clientes'][0]['nombre'])->toBe('Cliente Exportado')
             ->and($datos['comprobantes'])->toHaveCount(2)
-            ->and($zip->locateName('facturas-de-prueba/Factura-C-00002-00000007.pdf'))->not->toBeFalse()
+            ->and($zip->locateName('facturas-de-prueba/'.app(GeneradorDePdf::class)->nombreDeArchivo(Comprobante::query()->where('numero', 7)->sole())))->not->toBeFalse()
             ->and($todo)->not->toContain('PRIVATE KEY');
         $zip->close();
     });

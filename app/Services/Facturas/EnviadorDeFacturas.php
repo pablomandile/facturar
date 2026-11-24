@@ -26,14 +26,18 @@ class EnviadorDeFacturas
 {
     public const DESTINATARIOS_MAXIMOS = 3;
 
-    public function __construct(private readonly GeneradorDePdf $pdf) {}
+    public function __construct(
+        private readonly GeneradorDePdf $pdf,
+        private readonly TextoDelEmail $textoDelEmail,
+    ) {}
 
     /**
      * @param  list<string>  $para
+     * @param  string|null  $asunto  null: el de la plantilla del emisor
      *
      * @throws EnvioNoPermitido
      */
-    public function enviar(Comprobante $comprobante, array $para, bool $copiaAMi, string $texto): EnvioDeComprobante
+    public function enviar(Comprobante $comprobante, array $para, bool $copiaAMi, string $texto, ?string $asunto = null): EnvioDeComprobante
     {
         $comprobante->loadMissing(['emisor.usuario', 'puntoDeVenta', 'items']);
         $propio = $comprobante->emisor->usuario->email;
@@ -44,10 +48,12 @@ class EnviadorDeFacturas
         // La copia, solo si no está ya entre los destinatarios.
         $conCopia = $copiaAMi && ! in_array(mb_strtolower($propio), $para, true);
         $texto = trim(str_replace("\r\n", "\n", $texto));
+        $asunto = TextoDelEmail::unaLinea($asunto ?? '') ?: $this->textoDelEmail->asuntoPara($comprobante);
 
         try {
             $correo = new FacturaPorEmail(
                 comprobante: $comprobante,
+                asunto: $asunto,
                 texto: $texto,
                 pdf: $this->pdf->generar($comprobante)->output(),
                 nombreDelPdf: $this->pdf->nombreDeArchivo($comprobante),
@@ -64,6 +70,7 @@ class EnviadorDeFacturas
         return $comprobante->envios()->create([
             'destinatarios' => $para,
             'con_copia' => $conCopia,
+            'asunto' => $asunto,
             'texto' => $texto,
             'enviado' => $error === null,
             'error' => $error === null ? null : mb_substr($error, 0, 1000),

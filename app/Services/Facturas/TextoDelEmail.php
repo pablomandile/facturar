@@ -21,6 +21,10 @@ class TextoDelEmail
 {
     public const PLANTILLA_MAXIMA = 2000;
 
+    public const ASUNTO_MAXIMO = 200;
+
+    public const ASUNTO_POR_DEFECTO = 'Factura C {numero} — {razon_social}';
+
     public const POR_DEFECTO = <<<'TEXTO'
         Hola, {alias}:
 
@@ -57,6 +61,20 @@ class TextoDelEmail
         $plantilla = trim((string) $comprobante->emisor->plantilla_email);
 
         return $this->completar($plantilla === '' ? self::POR_DEFECTO : $plantilla, $comprobante);
+    }
+
+    /** El asunto: el del emisor o el de por defecto, en una sola línea. */
+    public function asuntoPara(Comprobante $comprobante): string
+    {
+        $plantilla = trim((string) $comprobante->emisor->asunto_email);
+
+        return self::unaLinea($this->completar($plantilla === '' ? self::ASUNTO_POR_DEFECTO : $plantilla, $comprobante));
+    }
+
+    /** Un asunto con saltos de línea rompe el encabezado del mail. */
+    public static function unaLinea(string $texto): string
+    {
+        return trim((string) preg_replace('/\s+/u', ' ', $texto));
     }
 
     public function completar(string $plantilla, Comprobante $comprobante): string

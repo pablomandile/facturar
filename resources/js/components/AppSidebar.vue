@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { Landmark, LayoutGrid, ReceiptText, Users } from '@lucide/vue';
+import { Landmark, LayoutGrid, Mail, ReceiptText, Users } from '@lucide/vue';
 import { onUnmounted } from 'vue';
 import ClienteController from '@/actions/App/Http/Controllers/ClienteController';
 import ComprobanteController from '@/actions/App/Http/Controllers/ComprobanteController';
+import ComunicacionController from '@/actions/App/Http/Controllers/ComunicacionController';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import AppLogo from '@/components/AppLogo.vue';
 import BotonInstalar from '@/components/BotonInstalar.vue';
@@ -55,6 +56,11 @@ const mainNavItems: NavItem[] = [
         title: 'Clientes',
         href: ClienteController.index(),
         icon: Users,
+    },
+    {
+        title: 'Comunicación',
+        href: ComunicacionController.edit(),
+        icon: Mail,
     },
     {
         title: 'Datos fiscales',

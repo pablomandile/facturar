@@ -175,6 +175,11 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   automático no pasa por ninguna pantalla. Sin `{importe_en_letras}` (vive en TS); va en el PDF.
   `{alias}` es `clientes.alias` y, si está vacío, el nombre del receptor: un saludo nunca queda
   con un hueco (el texto por defecto arranca con "Hola, {alias}:").
+- El asunto y el texto se editan en **Comunicación** (`ComunicacionController`, menú lateral,
+  detrás de `RequiereEmisor`), no en Datos fiscales.
+- El **asunto** es otra plantilla con los mismos marcadores (`emisores.asunto_email`, vacía =
+  `TextoDelEmail::ASUNTO_POR_DEFECTO`), siempre en una línea (`unaLinea`: un salto rompe el
+  encabezado). Los dos se retocan en el diálogo antes de cada envío, y el envío guarda el asunto usado.
 - Sale de `MAIL_FROM_ADDRESS` con el nombre "{razón social} vía FacturAR" y **Reply-To al email
   de la cuenta**: las respuestas le llegan al emisor, no a la app.
 - **Homologación: solo al email de la cuenta.** Lo frenan el FormRequest y el enviador, y la
@@ -190,6 +195,11 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
 
 - El PDF se genera al vuelo y solo para facturas autorizadas: todo lo que lleva está en la base
   y una autorizada no cambia. Lleva la marca "sin validez fiscal" si es de homologación.
+- **Nombre del archivo** (`GeneradorDePdf::nombreDeArchivo`, el mismo en la descarga, el email y
+  la exportación): `APELLIDO_NOMBRE_MES_CUIT_011_00002-00000001.pdf`. El mes es el del
+  **período facturado** (sin período, el de la emisión); `011` es el código del tipo en ARCA.
+  APELLIDO_NOMBRE sale de `emisores.nombre_archivos` (Datos fiscales) o, vacío, de la razón
+  social dada vuelta (`Emisor::nombreDeArchivoSugerido`): con apellidos compuestos hay que cargarlo.
 - dompdf no soporta flexbox ni grid: `resources/views/pdf/factura-c.blade.php` va con tablas.
   Sin `isFontSubsettingEnabled` embebe la fuente entera y el PDF pasa de 30 KB a casi 900 KB.
 - El QR (RG 4892) es `https://www.afip.gob.ar/fe/qr/?p=` + base64 del JSON, con números como

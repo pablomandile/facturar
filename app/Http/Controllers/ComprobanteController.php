@@ -310,6 +310,7 @@ class ComprobanteController extends Controller
             $peticion->destinatarios(),
             $peticion->boolean('copia_a_mi'),
             (string) $peticion->validated('texto'),
+            (string) $peticion->validated('asunto'),
         );
 
         Inertia::flash('toast', $envio->enviado
@@ -335,12 +336,14 @@ class ComprobanteController extends Controller
             'para' => $homologacion ? $propio : (string) $deCliente,
             'solo_propio' => $homologacion,
             'propio' => $propio,
+            'asunto' => $this->textoDelEmail->asuntoPara($comprobante),
             'texto' => $this->textoDelEmail->para($comprobante),
             'envios' => $comprobante->envios->map(fn (EnvioDeComprobante $envio): array => [
                 'id' => $envio->id,
                 'fecha' => $envio->created_at?->toIso8601String(),
                 'destinatarios' => $envio->destinatarios,
                 'con_copia' => $envio->con_copia,
+                'asunto' => $envio->asunto,
                 'enviado' => $envio->enviado,
             ])->all(),
         ];

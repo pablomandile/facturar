@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\Arca\Ambiente;
+use App\Models\Emisor;
 use App\Models\User;
 use App\Rules\CuitValido;
 use App\Support\Arca\Cuit;
@@ -30,6 +31,11 @@ class EmisorGuardarRequest extends FormRequest
         if (is_string($this->input('cuit'))) {
             $this->merge(['cuit' => Cuit::normalizar($this->input('cuit'))]);
         }
+
+        // Se guarda ya como va en el archivo; vacío vuelve a la sugerencia.
+        if (is_string($this->input('nombre_archivos'))) {
+            $this->merge(['nombre_archivos' => Emisor::normalizarNombreDeArchivo($this->input('nombre_archivos')) ?: null]);
+        }
     }
 
     /** @return array<string, mixed> */
@@ -40,6 +46,7 @@ class EmisorGuardarRequest extends FormRequest
         return [
             'cuit' => ['required', 'string', new CuitValido, Rule::unique('emisores', 'cuit')->ignore($emisor?->id)],
             'razon_social' => ['required', 'string', 'max:120'],
+            'nombre_archivos' => ['nullable', 'string', 'max:60'],
             'domicilio_fiscal' => ['required', 'string', 'max:200'],
             'ingresos_brutos' => ['nullable', 'string', 'max:30'],
             'inicio_actividades' => ['required', 'date', 'before_or_equal:today'],
@@ -74,6 +81,7 @@ class EmisorGuardarRequest extends FormRequest
         return [
             'cuit' => 'CUIT',
             'razon_social' => 'nombre o razón social',
+            'nombre_archivos' => 'nombre para los archivos',
             'domicilio_fiscal' => 'domicilio fiscal',
             'ingresos_brutos' => 'ingresos brutos',
             'inicio_actividades' => 'inicio de actividades',
@@ -83,7 +91,7 @@ class EmisorGuardarRequest extends FormRequest
     /** @return array<string, mixed> */
     public function campos(): array
     {
-        return $this->safe()->only(['cuit', 'razon_social', 'domicilio_fiscal', 'ingresos_brutos', 'inicio_actividades', 'ambiente']);
+        return $this->safe()->only(['cuit', 'razon_social', 'nombre_archivos', 'domicilio_fiscal', 'ingresos_brutos', 'inicio_actividades', 'ambiente']);
     }
 
     private function usuario(): User

@@ -89,6 +89,19 @@ const abierto = ref(false);
                 </label>
 
                 <div class="grid gap-2">
+                    <Label for="asunto">Asunto</Label>
+                    <Input
+                        id="asunto"
+                        name="asunto"
+                        maxlength="200"
+                        autocomplete="off"
+                        :default-value="props.email.asunto"
+                        required
+                    />
+                    <InputError :message="errors.asunto" />
+                </div>
+
+                <div class="grid gap-2">
                     <Label for="texto">Mensaje</Label>
                     <textarea
                         id="texto"
@@ -100,8 +113,8 @@ const abierto = ref(false);
                         :value="props.email.texto"
                     />
                     <p class="text-xs text-muted-foreground">
-                        Sale del texto de Datos fiscales → Email de tus
-                        facturas. Lo que cambies acá vale solo para este envío.
+                        El asunto y el texto salen de Comunicación. Lo que
+                        cambies acá vale solo para este envío.
                     </p>
                     <InputError :message="errors.texto" />
                 </div>

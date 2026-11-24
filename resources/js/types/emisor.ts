@@ -9,6 +9,9 @@ export type Emisor = {
     cuit: string;
     cuit_formateado: string;
     razon_social: string;
+    /** Comienzo del nombre del PDF (APELLIDO_NOMBRE); null = la sugerencia. */
+    nombre_archivos: string | null;
+    nombre_archivos_sugerido: string;
     domicilio_fiscal: string;
     ingresos_brutos: string | null;
     inicio_actividades: string;
@@ -33,14 +36,6 @@ export type PuntoDeVenta = {
     numero_formateado: string;
     descripcion: string | null;
     activo: boolean;
-};
-
-/** El texto del email de las facturas, con sus marcadores (TextoDelEmail). */
-export type PlantillaEmail = {
-    plantilla: string | null;
-    por_defecto: string;
-    marcadores: { marcador: string; ejemplo: string }[];
-    maximo: number;
 };
 
 export type PasosConfiguracion = {

@@ -8,6 +8,7 @@ use App\Enums\Arca\Ambiente;
 use App\Models\Comprobante;
 use App\Models\User;
 use App\Services\Facturas\EnviadorDeFacturas;
+use App\Services\Facturas\TextoDelEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -49,6 +50,7 @@ class EnviarComprobanteRequest extends FormRequest
             'para' => ['required', 'array', 'min:1', 'max:'.EnviadorDeFacturas::DESTINATARIOS_MAXIMOS],
             'para.*' => ['required', 'string', 'email:rfc', 'max:254'],
             'copia_a_mi' => ['nullable', 'boolean'],
+            'asunto' => ['required', 'string', 'max:'.TextoDelEmail::ASUNTO_MAXIMO],
             'texto' => ['required', 'string', 'max:'.self::TEXTO_MAXIMO],
         ];
     }

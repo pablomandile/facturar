@@ -6,12 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\Arca\Ambiente;
 use App\Http\Requests\EmisorGuardarRequest;
-use App\Http\Requests\PlantillaEmailRequest;
 use App\Models\Certificado;
 use App\Models\Emisor;
 use App\Models\PuntoDeVenta;
 use App\Models\User;
-use App\Services\Facturas\TextoDelEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -52,12 +50,6 @@ class EmisorController extends Controller
                 'descripcion' => $punto->descripcion,
                 'activo' => $punto->activo,
             ])->all(),
-            'email' => [
-                'plantilla' => $emisor?->plantilla_email,
-                'por_defecto' => TextoDelEmail::POR_DEFECTO,
-                'marcadores' => TextoDelEmail::MARCADORES,
-                'maximo' => TextoDelEmail::PLANTILLA_MAXIMA,
-            ],
             'pasos' => [
                 'perfil' => $emisor !== null,
                 'certificado' => $vigente !== null,
@@ -82,19 +74,6 @@ class EmisorController extends Controller
         return to_route('emisor.edit');
     }
 
-    /** El texto del email de las facturas (ver TextoDelEmail). */
-    public function plantillaEmail(PlantillaEmailRequest $peticion): RedirectResponse
-    {
-        $usuario = $peticion->user();
-        assert($usuario instanceof User && $usuario->emisor !== null);
-
-        $usuario->emisor->forceFill(['plantilla_email' => $peticion->plantilla()])->save();
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Se guardó el texto del email.']);
-
-        return to_route('emisor.edit');
-    }
-
     /** @return array<string, mixed> */
     private function serializarEmisor(Emisor $emisor): array
     {
@@ -102,6 +81,8 @@ class EmisorController extends Controller
             'cuit' => $emisor->cuit,
             'cuit_formateado' => $emisor->cuitFormateado(),
             'razon_social' => $emisor->razon_social,
+            'nombre_archivos' => $emisor->nombre_archivos,
+            'nombre_archivos_sugerido' => Emisor::nombreDeArchivoSugerido($emisor->razon_social),
             'domicilio_fiscal' => $emisor->domicilio_fiscal,
             'ingresos_brutos' => $emisor->ingresos_brutos,
             'inicio_actividades' => $emisor->inicio_actividades->toDateString(),

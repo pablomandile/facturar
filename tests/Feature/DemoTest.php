@@ -131,7 +131,7 @@ describe('lo que la demo no deja tocar', function () {
     });
 
     it('facturar, cargar clientes y cambiar el texto del email, sí', function () {
-        $this->put(route('emisor.plantilla-email'), ['plantilla_email' => 'Hola {alias}'])->assertSessionHasNoErrors();
+        $this->put(route('comunicacion.update'), ['plantilla_email' => 'Hola {alias}'])->assertSessionHasNoErrors();
 
         expect(User::query()->where('email', config('demo.email'))->sole()->emisor?->plantilla_email)->toBe('Hola {alias}');
     });

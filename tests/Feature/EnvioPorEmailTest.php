@@ -10,7 +10,10 @@ use App\Models\Comprobante;
 use App\Models\Emisor;
 use App\Models\EnvioDeComprobante;
 use App\Models\PuntoDeVenta;
+use App\Models\User;
 use App\Services\Arca\RelojFiscal;
+use App\Services\Facturas\EnviadorDeFacturas;
+use App\Services\Facturas\GeneradorDePdf;
 use App\Services\Facturas\TextoDelEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
@@ -41,6 +44,7 @@ function envio(Comprobante $comprobante, array $datos = []): TestResponse
     return test()->post(route('comprobantes.enviar', $comprobante), [
         'para' => 'pagos@ministerio.test',
         'copia_a_mi' => '1',
+        'asunto' => 'Factura de noviembre — Pablo Ejemplo',
         'texto' => "Hola:\r\nTe mando la factura.",
         ...$datos,
     ]);
@@ -53,13 +57,15 @@ describe('el envío desde el detalle', function () {
         envio($comprobante)->assertRedirect(route('comprobantes.show', $comprobante))->assertSessionHasNoErrors();
 
         Mail::assertSent(FacturaPorEmail::class, function (FacturaPorEmail $correo) use ($comprobante): bool {
-            $correo->assertHasSubject('Factura C 00003-00000008 — Pablo Ejemplo');
+            // El asunto retocado en el diálogo, no el de la plantilla.
+            $correo->assertHasSubject('Factura de noviembre — Pablo Ejemplo');
 
             return $correo->hasTo('pagos@ministerio.test')
                 && $correo->hasCc($this->usuario->email)
                 && $correo->hasReplyTo($this->usuario->email)
                 && $correo->hasFrom((string) config('mail.from.address'), 'Pablo Ejemplo vía '.config('app.name'))
-                && $correo->hasAttachedData($correo->pdf, 'Factura-C-00003-00000008.pdf', ['mime' => 'application/pdf'])
+                && $correo->hasAttachedData($correo->pdf, app(GeneradorDePdf::class)->nombreDeArchivo($comprobante), ['mime' => 'application/pdf'])
+                && str_starts_with(app(GeneradorDePdf::class)->nombreDeArchivo($comprobante), 'EJEMPLO_PABLO_')
                 && str_starts_with($correo->pdf, '%PDF')
                 && $correo->texto === "Hola:\nTe mando la factura."
                 && $correo->comprobante->is($comprobante);
@@ -68,6 +74,7 @@ describe('el envío desde el detalle', function () {
         expect(EnvioDeComprobante::query()->sole())
             ->destinatarios->toBe(['pagos@ministerio.test'])
             ->con_copia->toBeTrue()
+            ->asunto->toBe('Factura de noviembre — Pablo Ejemplo')
             ->enviado->toBeTrue()
             ->error->toBeNull();
     });
@@ -80,6 +87,7 @@ describe('el envío desde el detalle', function () {
 
     it('rechaza cuatro direcciones o una inválida', function () {
         envio(autorizada(), ['para' => 'a@x.test, b@x.test, c@x.test, d@x.test'])->assertSessionHasErrors('para');
+        envio(autorizada(['numero' => 10]), ['asunto' => ''])->assertSessionHasErrors('asunto');
         envio(autorizada(['numero' => 9]), ['para' => 'esto-no-es-un-email'])->assertSessionHasErrors('para.0');
 
         Mail::assertNothingSent();
@@ -126,6 +134,7 @@ describe('el envío desde el detalle', function () {
             ->where('puede.enviar', true)
             ->where('email.para', 'pagos@ministerio.test')
             ->where('email.solo_propio', false)
+            ->where('email.asunto', 'Factura C 00003-00000008 — Pablo Ejemplo')
             ->where('email.texto', fn (string $texto): bool => str_contains($texto, 'Hola, Ministerio de Prueba:') && str_contains($texto, '00003-00000008'))
             ->has('email.envios', 1));
     });
@@ -207,17 +216,64 @@ describe('el texto del email', function () {
 
         expect((new TextoDelEmail)->para($comprobante))->toStartWith('Hola, Ministerio de Prueba:');
 
-        $this->put(route('emisor.plantilla-email'), ['plantilla_email' => "Factura {numero}\r\nGracias"])->assertSessionHasNoErrors();
+        $this->put(route('comunicacion.update'), ['plantilla_email' => "Factura {numero}\r\nGracias"])->assertSessionHasNoErrors();
 
         expect($this->emisor->fresh()?->plantilla_email)->toBe("Factura {numero}\nGracias")
             ->and((new TextoDelEmail)->para($comprobante->fresh()))->toBe("Factura 00003-00000008\nGracias");
 
-        $this->put(route('emisor.plantilla-email'), ['plantilla_email' => ''])->assertSessionHasNoErrors();
+        $this->put(route('comunicacion.update'), ['plantilla_email' => ''])->assertSessionHasNoErrors();
         expect($this->emisor->fresh()?->plantilla_email)->toBeNull();
     });
 
+    it('el asunto: el de la cuenta, con marcadores, en una sola línea', function () {
+        $comprobante = autorizada(['fecha_emision' => '2026-11-05']);
+
+        expect((new TextoDelEmail)->asuntoPara($comprobante))->toBe('Factura C 00003-00000008 — Pablo Ejemplo');
+
+        $this->put(route('comunicacion.update'), [
+            'asunto_email' => "Factura {mes}\r\n{anio} - {alias}",
+            'plantilla_email' => '',
+        ])->assertSessionHasNoErrors();
+
+        expect($this->emisor->fresh()?->asunto_email)->toBe('Factura {mes} {anio} - {alias}')
+            ->and((new TextoDelEmail)->asuntoPara($comprobante->fresh()))->toBe('Factura noviembre 2026 - Ministerio de Prueba');
+
+        $this->put(route('comunicacion.update'), ['asunto_email' => str_repeat('a', TextoDelEmail::ASUNTO_MAXIMO + 1)])
+            ->assertSessionHasErrors('asunto_email');
+    });
+
+    it('el envío automático sale con el asunto de la cuenta', function () {
+        $this->emisor->forceFill(['asunto_email' => 'Honorarios {mes} {anio}'])->save();
+        $comprobante = autorizada(['fecha_emision' => '2026-11-05']);
+
+        app(EnviadorDeFacturas::class)->enviar($comprobante, ['pagos@ministerio.test'], true, 'Hola');
+
+        Mail::assertSent(FacturaPorEmail::class, fn (FacturaPorEmail $correo): bool => $correo->asunto === 'Honorarios noviembre 2026');
+    });
+
+    it('se edita en Comunicación, y Datos fiscales ya no lo tiene', function () {
+        $this->emisor->forceFill(['asunto_email' => 'Factura {mes}'])->save();
+
+        $this->get(route('comunicacion.edit'))->assertInertia(fn (Assert $p) => $p
+            ->component('comunicacion/Index')
+            ->where('email.asunto', 'Factura {mes}')
+            ->where('email.por_defecto', TextoDelEmail::POR_DEFECTO)
+            ->has('email.marcadores', count(TextoDelEmail::MARCADORES)));
+
+        $this->put(route('comunicacion.update'), ['asunto_email' => 'Otro', 'plantilla_email' => ''])
+            ->assertRedirect(route('comunicacion.edit'));
+
+        $this->get(route('emisor.edit'))->assertInertia(fn (Assert $p) => $p->missing('email'));
+    });
+
+    it('sin datos fiscales, Comunicación manda a cargarlos', function () {
+        $this->actingAs(User::factory()->create())
+            ->get(route('comunicacion.edit'))
+            ->assertRedirect(route('emisor.edit'));
+    });
+
     it('no acepta uno de más de dos mil caracteres', function () {
-        $this->put(route('emisor.plantilla-email'), ['plantilla_email' => str_repeat('a', TextoDelEmail::PLANTILLA_MAXIMA + 1)])
+        $this->put(route('comunicacion.update'), ['plantilla_email' => str_repeat('a', TextoDelEmail::PLANTILLA_MAXIMA + 1)])
             ->assertSessionHasErrors('plantilla_email');
     });
 });

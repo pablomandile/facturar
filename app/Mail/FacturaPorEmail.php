@@ -22,6 +22,7 @@ class FacturaPorEmail extends Mailable
 {
     public function __construct(
         public readonly Comprobante $comprobante,
+        public readonly string $asunto,
         public readonly string $texto,
         public readonly string $pdf,
         public readonly string $nombreDelPdf,
@@ -35,7 +36,7 @@ class FacturaPorEmail extends Mailable
         return new Envelope(
             from: new Address((string) config('mail.from.address'), "{$razonSocial} vía ".config('app.name')),
             replyTo: [new Address($this->responderA, $razonSocial)],
-            subject: "Factura C {$this->comprobante->numeroCompleto()} — {$razonSocial}",
+            subject: $this->asunto,
         );
     }
 

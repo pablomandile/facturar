@@ -89,10 +89,12 @@ class ExportadorDeDatos
             'emisor' => $emisor === null ? null : [
                 'cuit' => $emisor->cuit,
                 'razon_social' => $emisor->razon_social,
+                'nombre_para_archivos' => $emisor->nombre_archivos,
                 'domicilio_fiscal' => $emisor->domicilio_fiscal,
                 'ingresos_brutos' => $emisor->ingresos_brutos,
                 'inicio_actividades' => $emisor->inicio_actividades->toDateString(),
                 'ambiente' => $emisor->ambiente->value,
+                'asunto_del_email' => $emisor->asunto_email,
                 'texto_del_email' => $emisor->plantilla_email,
             ],
             'certificados' => $emisor === null ? [] : $emisor->certificados()->orderBy('id')->get()->map(fn (Certificado $c): array => [
@@ -159,6 +161,7 @@ class ExportadorDeDatos
                         'fecha' => $e->created_at?->toIso8601String(),
                         'destinatarios' => $e->destinatarios,
                         'con_copia' => $e->con_copia,
+                        'asunto' => $e->asunto,
                         'texto' => $e->texto,
                         'enviado' => $e->enviado,
                         'error' => $e->error,

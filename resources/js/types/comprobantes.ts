@@ -86,6 +86,7 @@ export type EnvioPorEmail = {
     fecha: string | null;
     destinatarios: string[];
     con_copia: boolean;
+    asunto: string | null;
     enviado: boolean;
 };
 
@@ -96,7 +97,8 @@ export type EmailDeFactura = {
     /** Homologación: solo se puede mandar al email de la cuenta. */
     solo_propio: boolean;
     propio: string;
-    /** La plantilla del emisor, ya completa con los datos de esta factura. */
+    /** El asunto y el texto del emisor, ya completos con los datos de esta factura. */
+    asunto: string;
     texto: string;
     envios: EnvioPorEmail[];
 };

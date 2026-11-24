@@ -4,7 +4,6 @@ import { CircleCheck, Circle } from '@lucide/vue';
 import EmisorController from '@/actions/App/Http/Controllers/EmisorController';
 import CertificadoArca from '@/components/emisor/CertificadoArca.vue';
 import DatosFiscales from '@/components/emisor/DatosFiscales.vue';
-import EmailDeFacturas from '@/components/emisor/EmailDeFacturas.vue';
 import ProbarConexion from '@/components/emisor/ProbarConexion.vue';
 import PuntosDeVenta from '@/components/emisor/PuntosDeVenta.vue';
 import Seccion from '@/components/Seccion.vue';
@@ -14,7 +13,6 @@ import type {
     Emisor,
     OpcionAmbiente,
     PasosConfiguracion,
-    PlantillaEmail,
     PuntoDeVenta,
 } from '@/types/emisor';
 
@@ -32,7 +30,6 @@ const props = defineProps<{
     certificadoVigente: Certificado | null;
     certificadoPendiente: Certificado | null;
     puntosDeVenta: PuntoDeVenta[];
-    email: PlantillaEmail;
     pasos: PasosConfiguracion;
 }>();
 
@@ -140,14 +137,6 @@ const resumen = [
                 v-if="props.emisor"
                 :habilitado="props.pasos.certificado"
             />
-        </Seccion>
-
-        <Seccion v-if="props.emisor" titulo="Email de tus facturas">
-            <p class="mb-4 text-sm text-pretty text-muted-foreground">
-                El texto con que salen tus facturas por email. Tocá un marcador
-                para sumarlo: se reemplaza con los datos de cada factura.
-            </p>
-            <EmailDeFacturas :email="props.email" />
         </Seccion>
     </div>
 </template>

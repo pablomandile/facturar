@@ -5,6 +5,7 @@ use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ComprobanteController;
 use App\Http\Controllers\ComprobantePdfController;
+use App\Http\Controllers\ComunicacionController;
 use App\Http\Controllers\ConexionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmisorController;
@@ -49,7 +50,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Configuración fiscal: datos del emisor, certificado y puntos de venta.
     Route::get('emisor', [EmisorController::class, 'edit'])->name('emisor.edit');
     Route::put('emisor', [EmisorController::class, 'update'])->name('emisor.update');
-    Route::put('emisor/plantilla-email', [EmisorController::class, 'plantillaEmail'])->name('emisor.plantilla-email');
 
     Route::post('emisor/certificados', [CertificadoController::class, 'store'])->name('certificados.store');
     Route::get('emisor/certificados/{certificado}/csr', [CertificadoController::class, 'csr'])->name('certificados.csr');
@@ -66,6 +66,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Todo lo que factura necesita los datos fiscales cargados.
     Route::middleware(RequiereEmisor::class)->group(function () {
+        // Cómo le llegan las facturas al cliente: el asunto y el texto del email.
+        Route::get('comunicacion', [ComunicacionController::class, 'edit'])->name('comunicacion.edit');
+        Route::put('comunicacion', [ComunicacionController::class, 'update'])->name('comunicacion.update');
+
         Route::get('clientes', [ClienteController::class, 'index'])->name('clientes.index');
         Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');

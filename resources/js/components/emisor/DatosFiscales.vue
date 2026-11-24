@@ -57,6 +57,33 @@ defineProps<{
         </div>
 
         <div class="grid gap-2">
+            <Label for="nombre_archivos">Nombre para los archivos</Label>
+            <Input
+                id="nombre_archivos"
+                name="nombre_archivos"
+                maxlength="60"
+                autocomplete="off"
+                :default-value="emisor?.nombre_archivos ?? ''"
+                :placeholder="
+                    emisor?.nombre_archivos_sugerido ?? 'APELLIDO_NOMBRE'
+                "
+            />
+            <p class="text-xs text-pretty text-muted-foreground">
+                Así empieza el nombre del PDF de cada factura, por ejemplo
+                <span class="font-mono wrap-anywhere"
+                    >{{
+                        emisor?.nombre_archivos ||
+                        emisor?.nombre_archivos_sugerido ||
+                        'APELLIDO_NOMBRE'
+                    }}_NOV_{{
+                        emisor?.cuit ?? 'CUIT'
+                    }}_011_00001-00000001.pdf</span
+                >. Vacío, se arma con tu nombre dado vuelta.
+            </p>
+            <InputError :message="errors.nombre_archivos" />
+        </div>
+
+        <div class="grid gap-2">
             <Label for="ingresos_brutos">Ingresos brutos</Label>
             <Input
                 id="ingresos_brutos"

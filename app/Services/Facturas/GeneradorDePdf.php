@@ -22,6 +22,8 @@ use Barryvdh\DomPDF\PDF as DocumentoPdf;
  */
 class GeneradorDePdf
 {
+    private const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+
     public function __construct(private readonly ArmadorDeQr $qr) {}
 
     public function generar(Comprobante $comprobante): DocumentoPdf
@@ -34,9 +36,24 @@ class GeneradorDePdf
             ->setPaper('a4');
     }
 
+    /**
+     * "MANDILE_PABLO_NOV_20243660239_011_00002-00000001.pdf": quién factura,
+     * el mes del período facturado (sin período, el de la emisión), su CUIT,
+     * el código del comprobante en ARCA (011 = factura C) y el número. Es el
+     * mismo para la descarga, el email y la exportación de datos.
+     */
     public function nombreDeArchivo(Comprobante $comprobante): string
     {
-        return 'Factura-C-'.$comprobante->numeroCompleto().'.pdf';
+        $comprobante->loadMissing(['emisor', 'puntoDeVenta']);
+        $mes = ($comprobante->fecha_servicio_desde ?? $comprobante->fecha_emision)->month;
+
+        return implode('_', [
+            $comprobante->emisor->nombreParaArchivos(),
+            self::MESES[$mes - 1],
+            $comprobante->emisor->cuit,
+            str_pad((string) $comprobante->tipo->value, 3, '0', STR_PAD_LEFT),
+            $comprobante->numeroCompleto(),
+        ]).'.pdf';
     }
 
     /**

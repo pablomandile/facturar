@@ -23,6 +23,10 @@ class PlantillaEmailRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (is_string($this->input('asunto_email'))) {
+            $this->merge(['asunto_email' => TextoDelEmail::unaLinea((string) $this->input('asunto_email'))]);
+        }
+
         if (is_string($this->input('plantilla_email'))) {
             $this->merge(['plantilla_email' => trim(str_replace("\r\n", "\n", (string) $this->input('plantilla_email')))]);
         }
@@ -32,6 +36,7 @@ class PlantillaEmailRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'asunto_email' => ['nullable', 'string', 'max:'.TextoDelEmail::ASUNTO_MAXIMO],
             'plantilla_email' => ['nullable', 'string', 'max:'.TextoDelEmail::PLANTILLA_MAXIMA],
         ];
     }
@@ -39,7 +44,14 @@ class PlantillaEmailRequest extends FormRequest
     /** @return array<string, string> */
     public function attributes(): array
     {
-        return ['plantilla_email' => 'texto del email'];
+        return ['plantilla_email' => 'texto del email', 'asunto_email' => 'asunto'];
+    }
+
+    public function asunto(): ?string
+    {
+        $asunto = (string) $this->validated('asunto_email');
+
+        return $asunto === '' ? null : $asunto;
     }
 
     public function plantilla(): ?string
