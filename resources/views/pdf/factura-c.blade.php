@@ -26,12 +26,14 @@
         .cabecera { border: 0.25pt solid #000; }
         .original { height: 27pt; border-bottom: 0.25pt solid #000; text-align: center; vertical-align: middle; font-size: 14pt; font-weight: bold; }
         .cabecera .izq { width: 248pt; height: 118pt; padding: 0 6pt; }
-        .cabecera .centro { width: 47pt; }
+        /* La línea del medio es el borde entre dos celdas: crece con la cabecera
+           y llega siempre al fondo. El recuadro de la letra va encima, tapándola. */
+        .cabecera .mitad { width: 23.5pt; }
+        .cabecera .linea { border-right: 0.25pt solid #000; }
         .cabecera .der { padding: 0 6pt 0 19pt; }
-        .letra { height: 40pt; border: 0.5pt solid #000; border-top: 0; text-align: center; }
+        .letra { position: absolute; top: 27.5pt; left: 260pt; width: 46pt; height: 40pt; background: #fff; border: 0.5pt solid #000; border-top: 0; text-align: center; }
         .letra .c { font-size: 24pt; font-weight: bold; line-height: 26pt; padding-top: 2pt; }
         .letra .cod { font-size: 8pt; font-weight: bold; }
-        .linea { width: 23.5pt; height: 77pt; border-right: 0.25pt solid #000; }
         .razon { font-size: 10pt; font-weight: bold; text-align: center; margin-top: 18pt; height: 42pt; }
         .tipo { font-size: 18pt; font-weight: bold; margin-top: 12pt; height: 29pt; }
         .renglon { line-height: 12pt; }
@@ -78,7 +80,7 @@
 
     <table class="cabecera">
         <tr>
-            <td colspan="3" class="original">ORIGINAL</td>
+            <td colspan="4" class="original">ORIGINAL</td>
         </tr>
         <tr>
             <td class="izq">
@@ -93,13 +95,8 @@
                     <tr><td class="rotulo" style="width: 1%">Condición frente al IVA:</td><td><b>Responsable Monotributo</b></td></tr>
                 </table>
             </td>
-            <td class="centro">
-                <div class="letra">
-                    <div class="c">C</div>
-                    <div class="cod">COD. {{ str_pad((string) $comprobante->tipo->value, 3, '0', STR_PAD_LEFT) }}</div>
-                </div>
-                <div class="linea"></div>
-            </td>
+            <td class="mitad linea"></td>
+            <td class="mitad"></td>
             <td class="der">
                 <div class="tipo">FACTURA</div>
                 <div class="renglon"><b>Punto de Venta:</b> <b class="grande">{{ $punto }}</b> &nbsp;&nbsp;&nbsp;&nbsp; <b>Comp. Nro:</b> <b class="grande">{{ $numeroSolo }}</b></div>
@@ -112,6 +109,11 @@
             </td>
         </tr>
     </table>
+
+    <div class="letra">
+        <div class="c">C</div>
+        <div class="cod">COD. {{ str_pad((string) $comprobante->tipo->value, 3, '0', STR_PAD_LEFT) }}</div>
+    </div>
 
     @if ($comprobante->concepto->exigeFechasDeServicio())
         <table class="periodo">
