@@ -202,6 +202,13 @@ Sin Pinia ni Vue Router: el estado viaja en props de Inertia y las rutas las def
   social dada vuelta (`Emisor::nombreDeArchivoSugerido`): con apellidos compuestos hay que cargarlo.
 - dompdf no soporta flexbox ni grid: `resources/views/pdf/factura-c.blade.php` va con tablas.
   Sin `isFontSubsettingEnabled` embebe la fuente entera y el PDF pasa de 30 KB a casi 900 KB.
+- **El diseño copia la factura que arma ARCA** en "Comprobantes en línea", medida en pt sobre un
+  PDF real: mismos rótulos, CUIT sin guiones, importes sin separador de miles ("2169169,00"),
+  totales y pie fijos al fondo, logo de ARCA (`resources/arca/logo-arca.png`, sacado de ese PDF).
+  Helvetica (la Arial de ARCA, no se embebe) con `'DejaVu Sans'` detrás: dompdf toma de DejaVu
+  cada glifo que no está en Windows-1252; sin ella, una "→" o una "ł" salen como "?".
+  "Pág. 1/1" lo escribe `GeneradorDePdf` con `page_text` después de renderizar: CSS no tiene el
+  total de páginas (`counter(pages)` da 0). Ingresos brutos vacío no se imprime.
 - El QR (RG 4892) es `https://www.afip.gob.ar/fe/qr/?p=` + base64 del JSON, con números como
   números (`cuit`, `nroCmp`, `codAut`). A consumidor final sin identificar no se le informa
   receptor. Se probó: el PNG se decodifica y ARCA redirige la URL a su página de constatación.

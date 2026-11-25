@@ -114,6 +114,33 @@ describe('el nombre del archivo', function () {
     });
 });
 
+describe('el formato de la factura de ARCA', function () {
+    it('escribe importes, cantidades y CUIT como ARCA', function () {
+        expect(GeneradorDePdf::importe(216_916_900))->toBe('2169169,00')
+            ->and(GeneradorDePdf::importe(5))->toBe('0,05')
+            ->and(GeneradorDePdf::cantidad('1.0000'))->toBe('1,00')
+            ->and(GeneradorDePdf::cantidad('2.5000'))->toBe('2,50')
+            ->and(GeneradorDePdf::cantidad('1.1250'))->toBe('1,125');
+
+        $comprobante = Comprobante::factory()->paraPunto($this->punto)->autorizado(1)->create();
+        $html = view('pdf.factura-c', app(GeneradorDePdf::class)->datos($comprobante))->render();
+
+        expect($html)->toContain('20111111112')->not->toContain('20-11111111-2')
+            ->and($html)->toContain('data:image/png;base64,'.base64_encode((string) file_get_contents(resource_path('arca/logo-arca.png'))));
+    });
+
+    it('sin ingresos brutos cargados no imprime el renglón', function () {
+        $comprobante = Comprobante::factory()->paraPunto($this->punto)->autorizado(1)->create();
+
+        $sinCargar = view('pdf.factura-c', app(GeneradorDePdf::class)->datos($comprobante))->render();
+        $this->emisor->update(['ingresos_brutos' => '20111111112']);
+        $cargado = view('pdf.factura-c', app(GeneradorDePdf::class)->datos($comprobante->fresh()))->render();
+
+        expect($sinCargar)->not->toContain('Ingresos Brutos')->not->toContain('No inscripto')
+            ->and($cargado)->toContain('Ingresos Brutos:</b> 20111111112');
+    });
+});
+
 it('un borrador no tiene PDF', function () {
     $comprobante = Comprobante::factory()->paraPunto($this->punto)->create();
 
